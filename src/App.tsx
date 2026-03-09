@@ -25,6 +25,7 @@ const AuthScreen = ({ onAuthSuccess }: { onAuthSuccess: (user: any) => void }) =
     try {
       const res = await fetch(endpoint, {
         method: 'POST',
+        credentials: "include",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
@@ -1561,7 +1562,9 @@ export default function App() {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch('/api/auth/me', {
+        credentials: "include"
+      });
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
@@ -1577,7 +1580,7 @@ export default function App() {
   const fetchData = async () => {
     const safeFetch = async (url: string, setter: (data: any) => void) => {
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, {credentials: "include"});
         if (res.ok) {
           const data = await res.json();
           if (data) setter(data);
@@ -1611,13 +1614,14 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/auth/logout', { method: 'POST', credentials: "include" });
     setUser(null);
   };
 
   const handleSaveSettings = async (newSettings: Settings) => {
     await fetch('/api/settings', {
       method: 'POST',
+      credentials: "include",
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newSettings)
     });
@@ -1628,6 +1632,7 @@ export default function App() {
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
+        credentials: "include",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(product)
       });
@@ -1643,6 +1648,7 @@ export default function App() {
   const handleUpdateProduct = async (product: Product) => {
     const res = await fetch(`/api/products/${product.id}`, {
       method: 'PUT',
+      credentials: "include",
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(product)
     });
@@ -1653,7 +1659,7 @@ export default function App() {
 
   const handleDeleteProduct = async (id: number) => {
     if (!confirm('Delete this product?')) return;
-    await fetch(`/api/products/${id}`, { method: 'DELETE' });
+    await fetch(`/api/products/${id}`, { method: 'DELETE', credentials: "include" });
     setInventory(inventory.filter(p => p.id !== id));
   };
 
@@ -1664,6 +1670,7 @@ export default function App() {
       
       const res = await fetch(url, {
         method,
+        credentials: "include",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(invoice)
       });
@@ -1686,7 +1693,7 @@ export default function App() {
 
   const handleDeleteInvoice = async (id: number) => {
     if (!confirm('Delete this invoice? This cannot be undone.')) return;
-    await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
+    await fetch(`/api/invoices/${id}`, { method: 'DELETE', credentials: "include" });
     setInvoices(invoices.filter(inv => inv.id !== id));
     setSelectedInvoice(null);
     setActiveTab('invoices');
@@ -1695,6 +1702,7 @@ export default function App() {
   const handleUpdateProductPrice = async (id: number, price: number) => {
     await fetch(`/api/products/${id}/price`, {
       method: 'PATCH',
+      credentials: "include",
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ price })
     });
@@ -1703,7 +1711,7 @@ export default function App() {
 
   const handleViewInvoice = async (id: number) => {
     try {
-      const res = await fetch(`/api/invoices/${id}`);
+      const res = await fetch(`/api/invoices/${id}`, {credentials: "include"});
       if (res.ok) {
         const data = await res.json();
         if (data) {
