@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -31,19 +31,68 @@
   }
 }
 
+/* ── Print Styles ─────────────────────────────────────────────────────────── */
 @media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   .no-print {
     display: none !important;
   }
-  
-  body {
-    background-color: white !important;
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    width: 100% !important;
+    height: auto !important;
   }
-  
+
+  /* Force single page — scale content to fit */
+  @page {
+    size: A4 portrait;
+    margin: 6mm;
+  }
+
+  /* The invoice wrapper scales itself to always fit on one page */
+  .invoice-wrap {
+    width: 100% !important;
+    min-height: unset !important;
+    /* Scale down if the content is tall — browser will handle page break */
+    transform-origin: top left;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Prevent any element from causing a page break */
+  table, thead, tbody, tfoot, tr, td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
   .print-container {
     padding: 0 !important;
     margin: 0 !important;
     border: none !important;
     box-shadow: none !important;
+    width: 100vw !important;
+  }
+}
+
+/* ── Mobile print: force single-page scale ────────────────────────────────── */
+@media print and (max-width: 600px) {
+  @page {
+    size: A4 portrait;
+    margin: 4mm;
+  }
+
+  .invoice-wrap {
+    font-size: 8px !important;
+    padding: 6px !important;
+    transform: scale(0.78);
+    transform-origin: top left;
+    width: 128% !important; /* compensate for scale so content fills page width */
   }
 }
