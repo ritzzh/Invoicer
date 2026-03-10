@@ -28,6 +28,7 @@ COPY --from=builder /app/dist ./dist
 
 # Copy server and supporting files
 COPY server.ts ./
+COPY serverPdf.tsx ./
 COPY tsconfig.json ./
 COPY src/types.ts ./src/types.ts
 COPY src/lib/ ./src/lib/
