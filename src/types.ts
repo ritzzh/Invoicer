@@ -6,6 +6,8 @@ export interface Settings {
   companyWebsite: string;
   logoUrl: string;
   currency: string;
+  dlNumbers: string[];      // shared DL numbers stored in user profile
+  userName: string;         // user's own name (autofills doctor name)
 }
 
 export interface Product {
@@ -13,7 +15,10 @@ export interface Product {
   name: string;
   description: string;
   basePrice: number;
-  unit?: string;
+  unit: string;             // free-form string e.g. "Kg", "4 x 10 sheet"
+  batchNo?: string;
+  expiryDate?: string;
+  expiryMode?: 'full' | 'monthyear'; // how expiry is entered/displayed
 }
 
 export interface InvoiceItem {
@@ -22,7 +27,10 @@ export interface InvoiceItem {
   description: string;
   quantity: number;
   unitPrice: number;
-  unit?: string;
+  unit: string;             // free-form unit string
+  batchNo?: string;
+  expiryDate?: string;
+  expiryMode?: 'full' | 'monthyear';
   total: number;
 }
 
@@ -33,7 +41,10 @@ export interface Invoice {
   clientEmail: string;
   clientPhone?: string;
   clientAddress: string;
-  clientLabel: string; // e.g., "Patient Name", "Customer Name"
+  clientLabel: string;      // e.g., "Patient Name", "Customer Name"
+  doctorName?: string;
+  doctorLabel?: string;     // editable label for doctor field, e.g. "Doctor", "Referred By"
+  dlNumbers?: string[];
   date: string;
   dueDate: string;
   discountPercentage: number;

@@ -4,6 +4,7 @@ import Database from "better-sqlite3";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import cookieParser from "cookie-parser";
+import nodemailer from "nodemailer";
 import path from "path";
 import dotenv from "dotenv";
 
@@ -87,6 +88,24 @@ db.exec(`
 `);
 
 // --- Migrations ---
+
+// User migrations
+const userTableInfo = db.prepare("PRAGMA table_info(users)").all() as any[];
+const userColumns = userTableInfo.map(c => c.name);
+
+const userMigrations = [
+  { name: 'dlNumbers', sql: "ALTER TABLE users ADD COLUMN dlNumbers TEXT" },
+  { name: 'userName', sql: "ALTER TABLE users ADD COLUMN userName TEXT" },
+  { name: 'isAdmin', sql: "ALTER TABLE users ADD COLUMN isAdmin INTEGER DEFAULT 0" },
+  { name: 'emailAppPassword', sql: "ALTER TABLE users ADD COLUMN emailAppPassword TEXT" },
+];
+
+for (const m of userMigrations) {
+  if (!userColumns.includes(m.name)) {
+    try { db.exec(m.sql); } catch (e) { console.error(`User migration failed for ${m.name}:`, e); }
+  }
+}
+
 const invoiceTableInfo = db.prepare("PRAGMA table_info(invoices)").all() as any[];
 const invoiceColumns = invoiceTableInfo.map(c => c.name);
 
@@ -101,6 +120,7 @@ const invoiceMigrations = [
   { name: 'terms', sql: "ALTER TABLE invoices ADD COLUMN terms TEXT" },
   { name: 'showSignatory', sql: "ALTER TABLE invoices ADD COLUMN showSignatory INTEGER DEFAULT 0" },
   { name: 'doctorName', sql: "ALTER TABLE invoices ADD COLUMN doctorName TEXT" },
+  { name: 'doctorLabel', sql: "ALTER TABLE invoices ADD COLUMN doctorLabel TEXT DEFAULT 'Doctor'" },
   { name: 'dlNumbers', sql: "ALTER TABLE invoices ADD COLUMN dlNumbers TEXT" },
 ];
 
@@ -121,6 +141,7 @@ const productColumns = productTableInfo.map(c => c.name);
 const productMigrations = [
   { name: 'batchNo', sql: "ALTER TABLE products ADD COLUMN batchNo TEXT" },
   { name: 'expiryDate', sql: "ALTER TABLE products ADD COLUMN expiryDate TEXT" },
+  { name: 'expiryMode', sql: "ALTER TABLE products ADD COLUMN expiryMode TEXT DEFAULT 'full'" },
 ];
 
 for (const m of productMigrations) {
@@ -140,6 +161,7 @@ const itemsColumns = itemsTableInfo.map(c => c.name);
 const itemsMigrations = [
   { name: 'batchNo', sql: "ALTER TABLE invoice_items ADD COLUMN batchNo TEXT" },
   { name: 'expiryDate', sql: "ALTER TABLE invoice_items ADD COLUMN expiryDate TEXT" },
+  { name: 'expiryMode', sql: "ALTER TABLE invoice_items ADD COLUMN expiryMode TEXT DEFAULT 'full'" },
 ];
 
 for (const m of itemsMigrations) {
@@ -157,10 +179,23 @@ for (const m of itemsMigrations) {
 const authenticate = (req: any, res: Response, next: NextFunction) => {
   const token = req.cookies.token;
   if (!token) return res.status(401).json({ error: "Unauthorized" });
-
   try {
     const decoded: any = jwt.verify(token, JWT_SECRET);
     req.userId = decoded.userId;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+};
+
+const adminAuthenticate = (req: any, res: Response, next: NextFunction) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: "Unauthorized" });
+  try {
+    const decoded: any = jwt.verify(token, JWT_SECRET);
+    req.userId = decoded.userId;
+    const user = db.prepare("SELECT isAdmin FROM users WHERE id = ?").get(req.userId) as any;
+    if (!user?.isAdmin) return res.status(403).json({ error: "Forbidden" });
     next();
   } catch (err) {
     res.status(401).json({ error: "Invalid token" });
@@ -185,7 +220,12 @@ async function startServer() {
       const userId = result.lastInsertRowid;
       
       const token = jwt.sign({ userId }, JWT_SECRET);
-      res.cookie("token", token, { httpOnly: true, secure: true, sameSite: 'none' });
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        path: "/"
+      });
       res.json({ success: true, user: { email, companyName } });
     } catch (err: any) {
       res.status(400).json({ error: "User already exists or invalid data" });
@@ -202,7 +242,12 @@ async function startServer() {
       }
 
       const token = jwt.sign({ userId: user.id }, JWT_SECRET);
-      res.cookie("token", token, { httpOnly: true, secure: true, sameSite: 'none' });
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        path: "/"
+      });
       res.json({ success: true, user: { email: user.email, companyName: user.companyName } });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -215,25 +260,37 @@ async function startServer() {
   });
 
   app.get("/api/auth/me", authenticate, (req: any, res) => {
-    const user = db.prepare("SELECT id, email, companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency FROM users WHERE id = ?").get(req.userId);
+    const user = db.prepare("SELECT id, email, companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency, dlNumbers, userName, isAdmin FROM users WHERE id = ?").get(req.userId) as any;
+    if (user?.dlNumbers) try { user.dlNumbers = JSON.parse(user.dlNumbers); } catch { user.dlNumbers = ['','','']; }
     res.json(user);
   });
 
   // --- Protected API Routes ---
 
   app.get("/api/settings", authenticate, (req: any, res) => {
-    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.userId);
-    res.json(user);
+    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.userId) as any;
+    if (user?.dlNumbers) try { user.dlNumbers = JSON.parse(user.dlNumbers); } catch { user.dlNumbers = ['','','']; }
+    // Never expose password hash; mask app password presence only
+    const { password: _, ...safeUser } = user;
+    safeUser.hasEmailAppPassword = !!user.emailAppPassword;
+    safeUser.emailAppPassword = undefined;
+    res.json(safeUser);
   });
 
   app.post("/api/settings", authenticate, (req: any, res) => {
-    const { companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency } = req.body;
+    const { companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency, dlNumbers, userName, emailAppPassword } = req.body;
+    // Only update emailAppPassword if a non-empty value is provided
+    if (emailAppPassword && emailAppPassword.trim()) {
+      db.prepare(`UPDATE users SET emailAppPassword = ? WHERE id = ?`).run(emailAppPassword.trim(), req.userId);
+    }
     db.prepare(`
       UPDATE users SET 
         companyName = ?, companyAddress = ?, companyEmail = ?, 
-        companyPhone = ?, companyWebsite = ?, logoUrl = ?, currency = ?
+        companyPhone = ?, companyWebsite = ?, logoUrl = ?, currency = ?,
+        dlNumbers = ?, userName = ?
       WHERE id = ?
-    `).run(companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency, req.userId);
+    `).run(companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency,
+      dlNumbers ? JSON.stringify(dlNumbers) : null, userName || null, req.userId);
     res.json({ success: true });
   });
 
@@ -243,19 +300,19 @@ async function startServer() {
   });
 
   app.post("/api/products", authenticate, (req: any, res) => {
-    const { name, description, basePrice, unit, batchNo, expiryDate } = req.body;
+    const { name, description, basePrice, unit, batchNo, expiryDate, expiryMode } = req.body;
     const result = db.prepare(
-      "INSERT INTO products (userId, name, description, basePrice, unit, batchNo, expiryDate) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    ).run(req.userId, name, description, basePrice, unit || 'pcs', batchNo || null, expiryDate || null);
+      "INSERT INTO products (userId, name, description, basePrice, unit, batchNo, expiryDate, expiryMode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    ).run(req.userId, name, description, basePrice, unit || 'pcs', batchNo || null, expiryDate || null, expiryMode || 'full');
     const product = db.prepare("SELECT * FROM products WHERE id = ?").get(result.lastInsertRowid);
     res.json(product);
   });
 
   app.put("/api/products/:id", authenticate, (req: any, res) => {
-    const { name, description, basePrice, unit, batchNo, expiryDate } = req.body;
+    const { name, description, basePrice, unit, batchNo, expiryDate, expiryMode } = req.body;
     db.prepare(
-      "UPDATE products SET name = ?, description = ?, basePrice = ?, unit = ?, batchNo = ?, expiryDate = ? WHERE id = ? AND userId = ?"
-    ).run(name, description, basePrice, unit, batchNo || null, expiryDate || null, req.params.id, req.userId);
+      "UPDATE products SET name = ?, description = ?, basePrice = ?, unit = ?, batchNo = ?, expiryDate = ?, expiryMode = ? WHERE id = ? AND userId = ?"
+    ).run(name, description, basePrice, unit, batchNo || null, expiryDate || null, expiryMode || 'full', req.params.id, req.userId);
     const product = db.prepare("SELECT * FROM products WHERE id = ?").get(req.params.id);
     res.json(product);
   });
@@ -288,7 +345,8 @@ async function startServer() {
 
   app.post("/api/invoices", authenticate, (req: any, res) => {
     const { 
-      invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel, doctorName, dlNumbers,
+      invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel,
+      doctorName, doctorLabel, dlNumbers,
       date, dueDate, discountPercentage, 
       roundOff, total, balanceDue, items, template, themeColor, terms, showSignatory
     } = req.body;
@@ -296,12 +354,14 @@ async function startServer() {
     const transaction = db.transaction(() => {
       const result = db.prepare(`
         INSERT INTO invoices (
-          userId, invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel, doctorName, dlNumbers,
+          userId, invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel,
+          doctorName, doctorLabel, dlNumbers,
           date, dueDate, discountPercentage, 
           roundOff, total, balanceDue, template, themeColor, terms, showSignatory
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
-        req.userId, invoiceNumber, clientName, clientEmail, clientPhone || null, clientAddress, clientLabel || 'Billed To', doctorName || null,
+        req.userId, invoiceNumber, clientName, clientEmail, clientPhone || null, clientAddress,
+        clientLabel || 'Billed To', doctorName || null, doctorLabel || 'Doctor',
         dlNumbers ? JSON.stringify(dlNumbers) : null,
         date, dueDate || null, discountPercentage, 
         roundOff, total, balanceDue || 0, template, themeColor || '#000000', terms, showSignatory ? 1 : 0
@@ -309,12 +369,12 @@ async function startServer() {
 
       const invoiceId = result.lastInsertRowid;
       const insertItem = db.prepare(`
-        INSERT INTO invoice_items (invoiceId, productId, description, quantity, unitPrice, unit, batchNo, expiryDate, total)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO invoice_items (invoiceId, productId, description, quantity, unitPrice, unit, batchNo, expiryDate, expiryMode, total)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       for (const item of items) {
-        insertItem.run(invoiceId, item.productId, item.description, item.quantity, item.unitPrice, item.unit, item.batchNo || null, item.expiryDate || null, item.total);
+        insertItem.run(invoiceId, item.productId, item.description, item.quantity, item.unitPrice, item.unit, item.batchNo || null, item.expiryDate || null, item.expiryMode || 'full', item.total);
       }
 
       const inv = db.prepare("SELECT * FROM invoices WHERE id = ?").get(invoiceId) as any;
@@ -327,7 +387,8 @@ async function startServer() {
 
   app.put("/api/invoices/:id", authenticate, (req: any, res) => {
     const { 
-      invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel, doctorName, dlNumbers,
+      invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel,
+      doctorName, doctorLabel, dlNumbers,
       date, dueDate, discountPercentage, 
       roundOff, total, balanceDue, items, template, themeColor, terms, showSignatory
     } = req.body;
@@ -335,12 +396,14 @@ async function startServer() {
     const transaction = db.transaction(() => {
       db.prepare(`
         UPDATE invoices SET 
-          invoiceNumber = ?, clientName = ?, clientEmail = ?, clientPhone = ?, clientAddress = ?, clientLabel = ?, doctorName = ?, dlNumbers = ?,
+          invoiceNumber = ?, clientName = ?, clientEmail = ?, clientPhone = ?, clientAddress = ?,
+          clientLabel = ?, doctorName = ?, doctorLabel = ?, dlNumbers = ?,
           date = ?, dueDate = ?, discountPercentage = ?, 
           roundOff = ?, total = ?, balanceDue = ?, template = ?, themeColor = ?, terms = ?, showSignatory = ?
         WHERE id = ? AND userId = ?
       `).run(
-        invoiceNumber, clientName, clientEmail, clientPhone || null, clientAddress, clientLabel || 'Billed To', doctorName || null,
+        invoiceNumber, clientName, clientEmail, clientPhone || null, clientAddress,
+        clientLabel || 'Billed To', doctorName || null, doctorLabel || 'Doctor',
         dlNumbers ? JSON.stringify(dlNumbers) : null,
         date, dueDate || null, discountPercentage, 
         roundOff, total, balanceDue || 0, template, themeColor || '#000000', terms, showSignatory ? 1 : 0,
@@ -350,12 +413,12 @@ async function startServer() {
       db.prepare("DELETE FROM invoice_items WHERE invoiceId = ?").run(req.params.id);
       
       const insertItem = db.prepare(`
-        INSERT INTO invoice_items (invoiceId, productId, description, quantity, unitPrice, unit, batchNo, expiryDate, total)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO invoice_items (invoiceId, productId, description, quantity, unitPrice, unit, batchNo, expiryDate, expiryMode, total)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       for (const item of items) {
-        insertItem.run(req.params.id, item.productId, item.description, item.quantity, item.unitPrice, item.unit, item.batchNo || null, item.expiryDate || null, item.total);
+        insertItem.run(req.params.id, item.productId, item.description, item.quantity, item.unitPrice, item.unit, item.batchNo || null, item.expiryDate || null, item.expiryMode || 'full', item.total);
       }
 
       const updatedInvoice = db.prepare("SELECT * FROM invoices WHERE id = ?").get(req.params.id) as any;
@@ -371,6 +434,54 @@ async function startServer() {
     db.prepare("DELETE FROM invoice_items WHERE invoiceId = ?").run(req.params.id);
     db.prepare("DELETE FROM invoices WHERE id = ? AND userId = ?").run(req.params.id, req.userId);
     res.json({ success: true });
+  });
+
+  // --- Email Route ---
+  app.post("/api/send-invoice-email", authenticate, async (req: any, res) => {
+    try {
+      const { to, subject, body, invoiceNumber } = req.body;
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: "ritesh.inkpursuits@gmail.com",
+          pass: process.env.APP_PASSWORD,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `ritesh.inkpursuits@gmail.com`,
+        to,
+        subject,
+        text: body,
+      });
+
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Email error:", err);
+      res.status(500).json({ error: err.message || "Failed to send email" });
+    }
+  });
+
+  // --- Admin Routes ---
+  app.get("/api/admin/users", adminAuthenticate, (req: any, res) => {
+    const users = db.prepare(`
+      SELECT u.id, u.email, u.companyName, u.companyPhone, u.companyEmail, u.currency, u.isAdmin,
+             COUNT(i.id) as invoiceCount,
+             COALESCE(SUM(i.total), 0) as totalRevenue,
+             MAX(i.date) as lastInvoiceDate
+      FROM users u
+      LEFT JOIN invoices i ON i.userId = u.id
+      GROUP BY u.id
+      ORDER BY u.id ASC
+    `).all();
+    res.json(users);
+  });
+
+  app.patch("/api/admin/users/:id/toggle-admin", adminAuthenticate, (req: any, res) => {
+    const target = db.prepare("SELECT isAdmin FROM users WHERE id = ?").get(req.params.id) as any;
+    if (!target) return res.status(404).json({ error: "User not found" });
+    db.prepare("UPDATE users SET isAdmin = ? WHERE id = ?").run(target.isAdmin ? 0 : 1, req.params.id);
+    res.json({ success: true, isAdmin: !target.isAdmin });
   });
 
   // --- Vite middleware ---
