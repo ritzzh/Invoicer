@@ -283,15 +283,15 @@ const InvoiceEditor = ({
     clientAddress: '',
     clientLabel: 'Patient',
     doctorName: '',
-    dlNumbers: ['', '', ''],
+    dlNumbers: ['UP51200000229', 'UP51210000230', ''],
     date: format(new Date(), 'yyyy-MM-dd'),
     discountPercentage: 0,
     roundOff: 0,
     total: 0,
     balanceDue: 0,
     items: [{ description: '', quantity: 1, unitPrice: 0, unit: 'pcs', total: 0 }],
-    template: 'modern',
-    themeColor: '#000000',
+    template: 'medical',
+    themeColor: '#91b9ff',
     terms: '1. This is an electronically generated document.\n2. All disputes are subject to seller city jurisdiction.',
     showSignatory: true
   });
