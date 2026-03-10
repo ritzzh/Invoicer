@@ -31,7 +31,7 @@ export const DLNumbers = ({ dlNumbers }: { dlNumbers?: string[] }) => {
   const filled = (dlNumbers || []).filter((d) => d && d.trim());
   if (!filled.length) return null;
   return (
-    <div className="text-right absolute top-2 right-2 text-right">
+    <div className="text-right">
       {filled.map((dl, i) => (
         <p key={i} className="text-[8px] text-zinc-500 font-medium leading-tight">
           DL: {dl}
