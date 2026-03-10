@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import nodemailer from "nodemailer";
 import path from "path";
 import dotenv from "dotenv";
+import { buildInvoicePdfBuffer } from "./serverPdf.tsx";
 
 dotenv.config();
 
@@ -439,26 +440,93 @@ async function startServer() {
   // --- Email Route ---
   app.post("/api/send-invoice-email", authenticate, async (req: any, res) => {
     try {
-      const { to, subject, body, invoiceNumber } = req.body;
+      const { to, subject, body, invoiceNumber, invoiceData, settingsData } = req.body;
+      
+      const userRow = db.prepare("SELECT companyEmail, companyName, emailAppPassword FROM users WHERE id = ?").get((req as any).userId) as any;
+      const fromEmail = "ritesh.inkpursuits@gmail.com";
+      const appPass = process.env.APP_PASSWORD;
+
       const transporter = nodemailer.createTransport({
         service: "gmail",
-        auth: {
-          user: "ritesh.inkpursuits@gmail.com",
-          pass: process.env.APP_PASSWORD,
-        },
+        auth: { user: fromEmail, pass: appPass },
       });
 
-      await transporter.sendMail({
-        from: `ritesh.inkpursuits@gmail.com`,
+      const mailOptions: any = {
+        from: `"${userRow?.companyName || 'Invoicer'}" <${fromEmail}>`,
         to,
         subject,
         text: body,
-      });
+        html: body.replace(/\n/g, '<br>'),
+      };
 
+      // Generate PDF server-side from invoice data — no oklch, no browser issues
+      if (invoiceData && settingsData) {
+        try {
+          const pdfBuffer = await buildInvoicePdfBuffer(invoiceData, settingsData);
+          mailOptions.attachments = [{
+            filename: `Invoice-${invoiceNumber || 'document'}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          }];
+        } catch (pdfErr: any) {
+          console.error("PDF generation failed:", pdfErr.message);
+          // Send email without attachment rather than failing entirely
+        }
+      }
+
+      await transporter.sendMail(mailOptions);
       res.json({ success: true });
     } catch (err: any) {
       console.error("Email error:", err);
       res.status(500).json({ error: err.message || "Failed to send email" });
+    }
+  });
+
+  // --- Bulk Email Route ---
+  app.post("/api/send-bulk-invoice-email", authenticate, async (req: any, res) => {
+    try {
+      const { to, subject, body, invoicesData, settingsData } = req.body;
+
+      const userRow = db.prepare("SELECT companyEmail, companyName, emailAppPassword FROM users WHERE id = ?").get((req as any).userId) as any;
+      const fromEmail = "ritesh.inkpursuits@gmail.com";
+      const appPass = process.env.APP_PASSWORD;
+
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user: fromEmail, pass: appPass },
+      });
+
+      const attachments: any[] = [];
+      if (Array.isArray(invoicesData) && settingsData) {
+        for (const invoice of invoicesData) {
+          try {
+            const fullInvoice = { ...invoice };
+            fullInvoice.items = db.prepare("SELECT * FROM invoice_items WHERE invoiceId = ?").all(invoice.id);
+            const pdfBuffer = await buildInvoicePdfBuffer(fullInvoice, settingsData);
+            attachments.push({
+              filename: `Invoice-${invoice.invoiceNumber}.pdf`,
+              content: pdfBuffer,
+              contentType: 'application/pdf',
+            });
+          } catch (pdfErr: any) {
+            console.error(`PDF failed for ${invoice.invoiceNumber}:`, pdfErr.message);
+          }
+        }
+      }
+
+      await transporter.sendMail({
+        from: `"${userRow?.companyName || 'Invoicer'}" <${fromEmail}>`,
+        to,
+        subject,
+        text: body,
+        html: body.replace(/\n/g, '<br>'),
+        attachments,
+      });
+
+      res.json({ success: true, attached: attachments.length });
+    } catch (err: any) {
+      console.error("Bulk email error:", err);
+      res.status(500).json({ error: err.message || "Failed to send bulk email" });
     }
   });
 
@@ -482,6 +550,28 @@ async function startServer() {
     if (!target) return res.status(404).json({ error: "User not found" });
     db.prepare("UPDATE users SET isAdmin = ? WHERE id = ?").run(target.isAdmin ? 0 : 1, req.params.id);
     res.json({ success: true, isAdmin: !target.isAdmin });
+  });
+
+  app.get("/api/admin/invoices", adminAuthenticate, (req: any, res) => {
+    const invoices = db.prepare(`
+      SELECT i.*, u.companyName, u.email as userEmail
+      FROM invoices i
+      JOIN users u ON u.id = i.userId
+      ORDER BY i.id DESC
+    `).all() as any[];
+    invoices.forEach(inv => {
+      if (inv.dlNumbers) try { inv.dlNumbers = JSON.parse(inv.dlNumbers); } catch {}
+    });
+    res.json(invoices);
+  });
+
+  app.get("/api/admin/invoices/:id", adminAuthenticate, (req: any, res) => {
+    const invoice = db.prepare("SELECT i.*, u.companyName, u.email as userEmail, u.companyAddress, u.companyPhone, u.companyEmail as userCompanyEmail, u.logoUrl, u.currency FROM invoices i JOIN users u ON u.id = i.userId WHERE i.id = ?").get(req.params.id) as any;
+    if (invoice) {
+      if (invoice.dlNumbers) try { invoice.dlNumbers = JSON.parse(invoice.dlNumbers); } catch {}
+      invoice.items = db.prepare("SELECT * FROM invoice_items WHERE invoiceId = ?").all(invoice.id);
+    }
+    res.json(invoice);
   });
 
   // --- Vite middleware ---

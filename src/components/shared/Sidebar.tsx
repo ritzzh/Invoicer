@@ -33,7 +33,7 @@ export const Sidebar = ({ activeTab, setActiveTab, onLogout, isAdmin }: SidebarP
   const NavContent = () => (
     <>
       <div className="flex items-center gap-2 mb-10 px-2">
-        <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center text-white font-bold">I</div>
+        <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center text-white font-black text-xs tracking-tight">IO</div>
         <h1 className="text-xl font-bold tracking-tight">Invoicer</h1>
       </div>
 
@@ -76,7 +76,7 @@ export const Sidebar = ({ activeTab, setActiveTab, onLogout, isAdmin }: SidebarP
       {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-zinc-200 px-4 py-3 flex items-center justify-between no-print">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-zinc-900 rounded-lg flex items-center justify-center text-white font-bold text-sm">I</div>
+          <div className="w-7 h-7 bg-zinc-900 rounded-lg flex items-center justify-center text-white font-black text-[10px] tracking-tight">IO</div>
           <span className="text-lg font-bold tracking-tight">Invoicer</span>
         </div>
         <button onClick={() => setMobileOpen(true)} className="p-2 rounded-lg hover:bg-zinc-100 transition-colors">
@@ -89,7 +89,7 @@ export const Sidebar = ({ activeTab, setActiveTab, onLogout, isAdmin }: SidebarP
       <div className={cn('md:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-white p-6 flex flex-col transition-transform duration-300', mobileOpen ? 'translate-x-0' : '-translate-x-full')}>
         <div className="flex items-center justify-between mb-10 px-2">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center text-white font-bold">I</div>
+            <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center text-white font-black text-xs tracking-tight">IO</div>
             <h1 className="text-xl font-bold tracking-tight">Invoicer</h1>
           </div>
           <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors"><X size={18} /></button>

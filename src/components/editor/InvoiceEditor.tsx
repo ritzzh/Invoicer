@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, Save, Printer, Mail } from 'lucide-react';
+import { Plus, Trash2, Save, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { useReactToPrint } from 'react-to-print';
 import { Invoice, InvoiceItem, Product, Settings } from '../../types';
@@ -120,14 +120,9 @@ export const InvoiceEditor = ({
     setInvoice((prev) => ({ ...prev, items: newItems }));
   };
 
-  const handleSendEmail = () => {
-    const subject = `Invoice ${invoice.invoiceNumber} from ${settings.companyName}`;
-    const body = `Hi ${invoice.clientName},\n\nPlease find attached invoice ${invoice.invoiceNumber} for ${formatCurrency(invoice.total, settings.currency)}.\n\nThank you,\n${settings.companyName}`;
-    window.location.href = `mailto:${invoice.clientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  };
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row gap-6 lg:gap-8 p-4 sm:p-8">
+    <div className="flex-1 flex flex-col xl:flex-row gap-4 sm:gap-6 xl:gap-8 p-3 sm:p-5 md:p-8">
       {/* Editor Form */}
       <div className="flex-1 space-y-6 sm:space-y-8 no-print">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -138,10 +133,7 @@ export const InvoiceEditor = ({
             <button onClick={() => onSave(invoice)} className="btn-primary flex items-center gap-2 flex-1 sm:flex-none justify-center">
               <Save size={18} /> Save
             </button>
-            <button onClick={handleSendEmail} className="btn-secondary flex items-center gap-2 flex-1 sm:flex-none justify-center">
-              <Mail size={18} /> Email
-            </button>
-            <button onClick={() => handlePrint()} className="btn-secondary flex items-center gap-2 flex-1 sm:flex-none justify-center">
+<button onClick={() => handlePrint()} className="btn-secondary flex items-center gap-2 flex-1 sm:flex-none justify-center">
               <Printer size={18} /> Print
             </button>
           </div>
@@ -280,7 +272,7 @@ export const InvoiceEditor = ({
                     </div>
                   </div>
                   {/* Unit + Batch + Expiry */}
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 xs:grid-cols-3 gap-1.5 sm:gap-2">
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-zinc-400 uppercase">Unit</label>
                       <input placeholder="e.g. Kg, pcs, sheet" className="input py-1 text-xs" value={item.unit || ''} onChange={e => updateItem(idx, 'unit', e.target.value)} />
@@ -310,7 +302,7 @@ export const InvoiceEditor = ({
 
           {/* Totals */}
           <div className="pt-6 border-t border-zinc-100 flex justify-end">
-            <div className="w-full sm:w-64 space-y-3">
+            <div className="w-full xs:w-56 sm:w-64 space-y-3">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-medium text-zinc-500">Discount %</label>
                 <input type="number" className="input w-20 py-1 text-right" value={invoice.discountPercentage} onChange={e => setInvoice({ ...invoice, discountPercentage: parseFloat(e.target.value) || 0 })} />
@@ -333,14 +325,14 @@ export const InvoiceEditor = ({
       </div>
 
       {/* Preview Panel (Desktop only) */}
-      <div className="hidden lg:block w-[500px] sticky top-8 h-fit no-print">
+      <div className="hidden xl:block w-[420px] shrink-0 sticky top-8 h-fit no-print">
         <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4">Live Preview</h2>
-        <div className="bg-white shadow-2xl rounded-sm overflow-hidden scale-[0.6] origin-top-left w-[800px]">
+        <div className="bg-white shadow-2xl rounded-sm overflow-hidden" style={{transform:'scale(0.55)', transformOrigin:'top left', width:'760px'}}>
           <InvoiceTemplate invoice={invoice} settings={settings} />
         </div>
       </div>
 
-      {/* Hidden Print Container */}
+      {/* Hidden print container for react-to-print */}
       <div className="hidden">
         <div ref={printRef} className="print-container">
           <InvoiceTemplate invoice={invoice} settings={settings} />

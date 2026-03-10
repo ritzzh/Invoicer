@@ -21,6 +21,8 @@ export default function App() {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [emailSending, setEmailSending] = useState(false);
+  const [emailModal, setEmailModal] = useState<{ invoice: Invoice } | null>(null);
+  const [emailRecipient, setEmailRecipient] = useState('');
 
   const {
     user, setUser, loading, settings, inventory, invoices, fetchData,
@@ -57,11 +59,17 @@ export default function App() {
     });
   };
 
-  const sendEmail = async (invoice: Invoice) => {
-    if (!invoice.clientEmail) {
-      alert('No client email on this invoice.');
-      return;
-    }
+
+  const openEmailModal = (invoice: Invoice) => {
+    setEmailRecipient(invoice.clientEmail || '');
+    setEmailModal({ invoice });
+  };
+
+  const sendEmail = async () => {
+    if (!emailModal) return;
+    const { invoice } = emailModal;
+    const to = emailRecipient.trim();
+    if (!to) { alert('Please enter a recipient email.'); return; }
     setEmailSending(true);
     try {
       const subject = `Invoice ${invoice.invoiceNumber} from ${settings.companyName}`;
@@ -70,17 +78,17 @@ export default function App() {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: settings.companyEmail, subject, body, invoiceNumber: invoice.invoiceNumber }),
+        body: JSON.stringify({ to, subject, body, invoiceNumber: invoice.invoiceNumber, invoiceData: invoice, settingsData: settings }),
       });
       const data = await res.json();
       if (res.ok) {
-        alert(`Email sent successfully to ${settings.companyEmail}`);
+        alert(`Email sent to ${to} with PDF attached ✓`);
+        setEmailModal(null);
       } else {
-        // Fallback to mailto if API email fails
-        alert(`Server email failed: ${data.error}\n\nOpening mail client as fallback.`);
-        window.location.href = `mailto:${settings.companyEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        alert(`Email failed: ${data.error}`);
       }
-    } catch {
+    } catch (err) {
+      console.error('sendEmail error:', err);
       alert('Failed to send email. Check your app password in Settings.');
     } finally {
       setEmailSending(false);
@@ -136,12 +144,10 @@ export default function App() {
                       <span className="sm:hidden">Edit</span>
                     </button>
                     <button
-                      onClick={() => sendEmail(selectedInvoice)}
-                      disabled={emailSending}
-                      className="btn-secondary flex items-center gap-2 flex-1 sm:flex-none justify-center disabled:opacity-50"
+                      onClick={() => openEmailModal(selectedInvoice)}
+                      className="btn-secondary flex items-center gap-2 flex-1 sm:flex-none justify-center"
                     >
-                      <Mail size={18} />
-                      {emailSending ? 'Sending...' : 'Email'}
+                      <Mail size={18} /> Email
                     </button>
                     <button onClick={() => window.print()} className="btn-secondary flex items-center gap-2 flex-1 sm:flex-none justify-center">
                       <Printer size={18} /> Print
@@ -151,7 +157,7 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-                <div className="bg-white shadow-xl rounded-sm overflow-hidden">
+                <div className="bg-white shadow-xl rounded-sm">
                   <InvoiceTemplate invoice={selectedInvoice} settings={settings} />
                 </div>
               </div>
@@ -160,7 +166,7 @@ export default function App() {
             <motion.div key={activeTab} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
               {activeTab === 'dashboard' && <Dashboard invoices={invoices} settings={settings} />}
               {activeTab === 'invoices' && (
-                <InvoiceList invoices={invoices} onNew={() => setIsCreating(true)} onView={onViewInvoice} onDelete={onDeleteInvoice} currency={settings.currency} />
+                <InvoiceList invoices={invoices} onNew={() => setIsCreating(true)} onView={onViewInvoice} onDelete={onDeleteInvoice} currency={settings.currency} settings={settings} />
               )}
               {activeTab === 'inventory' && (
                 <InventoryManager products={inventory} onAdd={handleAddProduct} onUpdate={handleUpdateProduct} onDelete={handleDeleteProduct} currency={settings.currency} />
@@ -171,6 +177,39 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Email Modal */}
+      {emailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-5 sm:p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-1">Send Invoice</h3>
+            <p className="text-sm text-zinc-500 mb-4">
+              Send <span className="font-semibold text-zinc-700">#{emailModal.invoice.invoiceNumber}</span> to {emailModal.invoice.clientName} as a PDF attachment.
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-zinc-400 uppercase mb-1 block">Recipient Email</label>
+                <input
+                  type="email"
+                  className="input w-full"
+                  placeholder="recipient@email.com"
+                  value={emailRecipient}
+                  onChange={e => setEmailRecipient(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && sendEmail()}
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => setEmailModal(null)} className="btn-secondary flex-1 text-sm">Cancel</button>
+                <button onClick={sendEmail} disabled={emailSending} className="btn-primary flex-1 text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+                  <Mail size={15} />
+                  {emailSending ? 'Sending…' : 'Send Email'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

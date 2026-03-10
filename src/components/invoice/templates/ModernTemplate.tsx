@@ -29,7 +29,15 @@ export const ModernTemplate = ({ invoice, settings }: TemplateProps) => {
         </div>
       </div>
 
-      <InvoiceTitle themeColor={themeColor} />
+      <div className="relative mb-3">
+        <div className="text-center">
+          <InvoiceTitle themeColor={themeColor} />
+        </div>
+
+        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[8px] font-semibold tracking-wider text-zinc-500 uppercase">
+          ORIGINAL FOR RECIPIENT
+        </span>
+      </div>
 
       <div className="flex justify-between items-center bg-zinc-50 px-5 py-3 rounded-xl mb-6">
         <div className="space-y-0.5">

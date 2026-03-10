@@ -96,3 +96,20 @@
     width: 128% !important; /* compensate for scale so content fills page width */
   }
 }
+
+/* ── Extra small screen helper ────────────────────────────────────────────── */
+@media (max-width: 374px) {
+  .invoice-viewer-wrap {
+    padding: 8px !important;
+  }
+  .invoice-action-bar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .invoice-action-bar button {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 0;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}
