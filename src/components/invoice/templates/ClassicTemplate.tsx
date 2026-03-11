@@ -28,9 +28,14 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-0.5 mb-2">
-        <InvoiceTitle themeColor={themeColor} />
-        <span className="text-[8px] font-semibold tracking-wider text-zinc-500 uppercase">ORIGINAL FOR RECIPIENT</span>
+      <div className="relative mb-3">
+        <div className="text-center">
+          <InvoiceTitle themeColor={themeColor} />
+        </div>
+
+        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[8px] font-semibold tracking-wider text-zinc-500 uppercase">
+          ORIGINAL FOR RECIPIENT
+        </span>
       </div>
 
       <div className="flex justify-between items-center mb-3">
@@ -128,6 +133,7 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
         {invoice.showSignatory && (
           <div className="flex justify-end items-end">
             <div className="w-52 text-center">
+              <p className="text-[10px] font-semibold mb-3">For, {settings.companyName}</p>
               {(invoice as any).useDigitalSignature && settings.signatureUrl ? (
                 <img
                   src={settings.signatureUrl}
@@ -136,7 +142,7 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
                   style={{ maxWidth: 160 }}
                 />
               ) : (
-                <p className="text-[10px] font-semibold mb-10">For, {settings.companyName}</p>
+                <></>
               )}
               <div className="border-t border-zinc-900 pt-1">
                 <p className="font-bold uppercase text-[9px] tracking-widest">Authorised Signatory</p>
