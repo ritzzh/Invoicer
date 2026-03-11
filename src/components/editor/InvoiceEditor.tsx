@@ -43,6 +43,8 @@ export const InvoiceEditor = ({
       themeColor: '#91b9ff',
       terms: '1. This is an electronically generated document.\n2. All disputes are subject to seller city jurisdiction.',
       showSignatory: true,
+      useDigitalSignature: false,
+      companyTitleSize: settings.companyTitleSize || 0,
     } as any
   );
 
@@ -67,7 +69,10 @@ export const InvoiceEditor = ({
   // New items added to the TOP (index 0)
   const addItem = () => {
     if (invoice.items.length >= 20) {
-      alert('Maximum 20 items allowed per invoice to ensure single-page layout.');
+      // Max items reached — the parent will show a toast via the useToast hook
+      // but since editor is standalone, we use window-level alert as fallback
+      // This will be improved when the editor gets its own toast context
+      window.dispatchEvent(new CustomEvent('app-warning', { detail: 'Maximum 20 items allowed per invoice to ensure single-page layout.' }));
       return;
     }
     setInvoice((prev) => ({
@@ -102,7 +107,7 @@ export const InvoiceEditor = ({
       (item, i) => i !== index && (item as any).productId === productId
     );
     if (alreadyUsed) {
-      alert(`"${product.name}" is already in the invoice. Increase the quantity on the existing row instead.`);
+      window.dispatchEvent(new CustomEvent('app-warning', { detail: `"${product.name}" is already in the invoice. Increase the quantity on the existing row instead.` }));
       return;
     }
       const newItems = [...invoice.items];
@@ -184,9 +189,44 @@ export const InvoiceEditor = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <input type="checkbox" id="showSignatory" checked={invoice.showSignatory} onChange={e => setInvoice({ ...invoice, showSignatory: e.target.checked })} className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900" />
-            <label htmlFor="showSignatory" className="text-xs font-semibold text-zinc-500 uppercase cursor-pointer">Show Authorized Signatory Line</label>
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="showSignatory" checked={invoice.showSignatory} onChange={e => setInvoice({ ...invoice, showSignatory: e.target.checked })} className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900" />
+              <label htmlFor="showSignatory" className="text-xs font-semibold text-zinc-500 uppercase cursor-pointer">Show Signatory</label>
+            </div>
+            {invoice.showSignatory && settings.signatureUrl && (
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="useDigitalSignature" checked={(invoice as any).useDigitalSignature || false} onChange={e => setInvoice({ ...invoice, useDigitalSignature: e.target.checked } as any)} className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900" />
+                <label htmlFor="useDigitalSignature" className="text-xs font-semibold text-zinc-500 uppercase cursor-pointer flex items-center gap-1">
+                  <span>Digitally Signed</span>
+                  <span className="text-[9px] font-normal normal-case text-zinc-400">(embed signature from settings)</span>
+                </label>
+              </div>
+            )}
+            {settings.signatureUrl && !invoice.showSignatory && (
+              <p className="text-[10px] text-zinc-400">Enable signatory to use digital signature</p>
+            )}
+            {!settings.signatureUrl && (
+              <p className="text-[10px] text-zinc-400">Upload a signature in Settings to enable digital signing</p>
+            )}
+          </div>
+
+          {/* Company Title Size override */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-zinc-500 uppercase">
+                Company Title Size <span className="normal-case text-zinc-300">(px, 0 = auto)</span>
+              </label>
+              <input
+                type="number"
+                className="input"
+                min={0}
+                max={120}
+                placeholder={`Auto (from settings: ${settings.companyTitleSize || 'auto'})`}
+                value={(invoice as any).companyTitleSize || ''}
+                onChange={e => setInvoice({ ...invoice, companyTitleSize: parseInt(e.target.value) || 0 } as any)}
+              />
+            </div>
           </div>
 
           {/* Client Details */}

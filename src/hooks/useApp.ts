@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Invoice, Product, Settings } from '../types';
+import { useToast } from '../components/shared/Toast';
 
 const DEFAULT_SETTINGS: Settings = {
   companyName: '',
@@ -11,18 +12,63 @@ const DEFAULT_SETTINGS: Settings = {
   currency: 'INR',
   dlNumbers: ['', '', ''],
   userName: '',
+  signatureUrl: '',
 };
 
-export const useApp = () => {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
-  const [inventory, setInventory] = useState<Product[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+export interface ProductSalesStat {
+  productId: number | null;
+  name: string;
+  inventoryUnit: string | null;
+  invoiceUnit: string;
+  basePrice: number;
+  totalQty: number;
+  totalRevenue: number;
+  invoiceCount: number;
+  firstSold: string;
+  lastSold: string;
+}
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+export interface InventoryStatusRow {
+  id: number;
+  name: string;
+  basePrice: number;
+  unit: string;
+  batchNo: string | null;
+  expiryDate: string | null;
+  soldQty: number;
+  soldRevenue: number;
+  invoiceCount: number;
+}
+
+export interface DashboardStats {
+  summary: {
+    totalRevenue: number;
+    monthlyRevenue: number;
+    totalInvoices: number;
+    monthlyInvoices: number;
+  };
+  monthlyChart: { month: string; revenue: number; count: number }[];
+  recentInvoices: {
+    id: number;
+    invoiceNumber: string;
+    clientName: string;
+    total: number;
+    date: string;
+  }[];
+  productSales: ProductSalesStat[];
+  inventoryStatus: InventoryStatusRow[];
+}
+
+export const useApp = () => {
+  const [user, setUser]                     = useState<any>(null);
+  const [loading, setLoading]               = useState(true);
+  const [settings, setSettings]             = useState<Settings>(DEFAULT_SETTINGS);
+  const [inventory, setInventory]           = useState<Product[]>([]);
+  const [invoices, setInvoices]             = useState<Invoice[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const { success, error } = useToast();
+
+  useEffect(() => { checkAuth(); }, []);
 
   const checkAuth = async () => {
     try {
@@ -32,53 +78,54 @@ export const useApp = () => {
         setUser(userData);
         fetchData();
       }
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchDashboardStats = async () => {
+    try {
+      const res = await fetch('/api/dashboard/stats', { credentials: 'include' });
+      if (res.ok) setDashboardStats(await res.json());
+    } catch (e) {
+      console.error('fetchDashboardStats', e);
+    }
+  };
+
   const fetchData = async () => {
-    const safeFetch = async (url: string, setter: (data: any) => void) => {
+    const safe = async (url: string, cb: (d: any) => void) => {
       try {
-        const res = await fetch(url, { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data) setter(data);
-        }
-      } catch (err) {
-        console.error(`Error fetching ${url}:`, err);
-      }
+        const r = await fetch(url, { credentials: 'include' });
+        if (r.ok) { const d = await r.json(); if (d) cb(d); }
+      } catch (e) { console.error(url, e); }
     };
 
-    safeFetch('/api/settings', (data) => {
-      setSettings({
-        companyName: data.companyName || '',
-        companyAddress: data.companyAddress || '',
-        companyEmail: data.companyEmail || '',
-        companyPhone: data.companyPhone || '',
-        companyWebsite: data.companyWebsite || '',
-        logoUrl: data.logoUrl || '',
-        currency: data.currency || 'INR',
-        dlNumbers: Array.isArray(data.dlNumbers) ? data.dlNumbers : ['', '', ''],
-        userName: data.userName || '',
-      });
-    });
+    safe('/api/settings', (d) => setSettings({
+      companyName:      d.companyName      || '',
+      companyAddress:   d.companyAddress   || '',
+      companyEmail:     d.companyEmail     || '',
+      companyPhone:     d.companyPhone     || '',
+      companyWebsite:   d.companyWebsite   || '',
+      logoUrl:          d.logoUrl          || '',
+      currency:         d.currency         || 'INR',
+      dlNumbers:        Array.isArray(d.dlNumbers) ? d.dlNumbers : ['', '', ''],
+      userName:         d.userName         || '',
+      signatureUrl:     d.signatureUrl     || '',
+      companyTitleSize: d.companyTitleSize  || undefined,
+    }));
 
-    safeFetch('/api/products', (data) => {
-      setInventory(
-        data.map((p: any) => ({
-          ...p,
-          description: p.description || '',
-          unit: p.unit || 'pcs',
-          batchNo: p.batchNo || '',
-          expiryDate: p.expiryDate || '',
-        }))
-      );
-    });
+    safe('/api/products', (d) => setInventory(d.map((p: any) => ({
+      ...p,
+      description: p.description || '',
+      unit:        p.unit        || 'pcs',
+      batchNo:     p.batchNo     || '',
+      expiryDate:  p.expiryDate  || '',
+    }))));
 
-    safeFetch('/api/invoices', setInvoices);
+    safe('/api/invoices', setInvoices);
+    fetchDashboardStats();
   };
 
   const handleLogout = async () => {
@@ -86,141 +133,116 @@ export const useApp = () => {
     setUser(null);
   };
 
-  const handleSaveSettings = async (newSettings: Settings) => {
-    await fetch('/api/settings', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newSettings),
-    });
-    setSettings(newSettings);
+  const handleSaveSettings = async (s: Settings) => {
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(s),
+      });
+      if (res.ok) { setSettings(s); success('Settings saved'); }
+      else         error('Failed to save settings');
+    } catch { error('Failed to save settings'); }
   };
 
   const handleAddProduct = async (product: Product) => {
     try {
       const res = await fetch('/api/products', {
-        method: 'POST',
-        credentials: 'include',
+        method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(product),
       });
       if (res.ok) {
-        const data = await res.json();
-        setInventory((prev) => [
-          ...prev,
-          {
-            ...data,
-            description: data.description || '',
-            unit: data.unit || 'pcs',
-            batchNo: data.batchNo || '',
-            expiryDate: data.expiryDate || '',
-          },
-        ]);
+        const d = await res.json();
+        setInventory(prev => [...prev, { ...d, description: d.description || '', unit: d.unit || 'pcs', batchNo: d.batchNo || '', expiryDate: d.expiryDate || '' }]);
+        success('Product added');
+        fetchDashboardStats();
       }
-    } catch (err) {
-      console.error('Error adding product:', err);
-    }
+    } catch { error('Failed to add product'); }
   };
 
   const handleUpdateProduct = async (product: Product) => {
     const res = await fetch(`/api/products/${product.id}`, {
-      method: 'PUT',
-      credentials: 'include',
+      method: 'PUT', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(product),
     });
     if (res.ok) {
-      setInventory(inventory.map((p) => (p.id === product.id ? product : p)));
+      setInventory(prev => prev.map(p => p.id === product.id ? product : p));
+      success('Product updated');
+      fetchDashboardStats();
     }
   };
 
   const handleDeleteProduct = async (id: number) => {
-    if (!confirm('Delete this product?')) return;
     await fetch(`/api/products/${id}`, { method: 'DELETE', credentials: 'include' });
-    setInventory(inventory.filter((p) => p.id !== id));
+    setInventory(prev => prev.filter(p => p.id !== id));
+    success('Product deleted');
+    fetchDashboardStats();
   };
 
-  const handleSaveInvoice = async (
-    invoice: Invoice,
-    onSuccess: (saved: Invoice) => void
-  ) => {
+  const handleSaveInvoice = async (invoice: Invoice, onSuccess: (saved: Invoice) => void) => {
     try {
       const method = invoice.id ? 'PUT' : 'POST';
-      const url = invoice.id ? `/api/invoices/${invoice.id}` : '/api/invoices';
-      const res = await fetch(url, {
-        method,
-        credentials: 'include',
+      const url    = invoice.id ? `/api/invoices/${invoice.id}` : '/api/invoices';
+      const res    = await fetch(url, {
+        method, credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(invoice),
       });
       if (res.ok) {
-        const data = await res.json();
-        if (invoice.id) {
-          setInvoices(invoices.map((inv) => (inv.id === invoice.id ? data : inv)));
-        } else {
-          setInvoices([data, ...invoices]);
-        }
-        onSuccess(data);
+        const d = await res.json();
+        setInvoices(prev => invoice.id ? prev.map(i => i.id === invoice.id ? d : i) : [d, ...prev]);
+        success(invoice.id ? 'Invoice updated' : 'Invoice created');
+        fetchDashboardStats();
+        onSuccess(d);
       }
-    } catch (err) {
-      console.error('Error saving invoice:', err);
-    }
+    } catch { error('Failed to save invoice'); }
   };
 
   const handleDeleteInvoice = async (id: number, onSuccess: () => void) => {
-    if (!confirm('Delete this invoice? This cannot be undone.')) return;
     await fetch(`/api/invoices/${id}`, { method: 'DELETE', credentials: 'include' });
-    setInvoices(invoices.filter((inv) => inv.id !== id));
+    setInvoices(prev => prev.filter(i => i.id !== id));
+    success('Invoice deleted');
+    fetchDashboardStats();
     onSuccess();
   };
 
   const handleUpdateProductPrice = async (id: number, price: number) => {
     await fetch(`/api/products/${id}/price`, {
-      method: 'PATCH',
-      credentials: 'include',
+      method: 'PATCH', credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ price }),
     });
-    setInventory(inventory.map((p) => (p.id === id ? { ...p, basePrice: price } : p)));
+    setInventory(prev => prev.map(p => p.id === id ? { ...p, basePrice: price } : p));
+    success('Price updated in inventory');
+    fetchDashboardStats();
   };
 
   const handleViewInvoice = async (id: number): Promise<Invoice | null> => {
     try {
       const res = await fetch(`/api/invoices/${id}`, { credentials: 'include' });
       if (res.ok) {
-        const data = await res.json();
-        if (data) {
-          return {
-            ...data,
-            clientLabel: data.clientLabel || 'Patient',
-            balanceDue: data.balanceDue || 0,
-            doctorName: data.doctorName || '',
-            dlNumbers: data.dlNumbers || ['', '', ''],
-          };
-        }
+        const d = await res.json();
+        if (d) return {
+          ...d,
+          clientLabel: d.clientLabel || 'Patient',
+          balanceDue:  d.balanceDue  || 0,
+          doctorName:  d.doctorName  || '',
+          dlNumbers:   d.dlNumbers   || ['', '', ''],
+        };
       }
-    } catch (err) {
-      console.error('Error viewing invoice:', err);
-    }
+    } catch (e) { console.error(e); }
     return null;
   };
 
   return {
-    user,
-    setUser,
-    loading,
-    settings,
-    inventory,
-    invoices,
-    fetchData,
-    handleLogout,
-    handleSaveSettings,
-    handleAddProduct,
-    handleUpdateProduct,
-    handleDeleteProduct,
-    handleSaveInvoice,
-    handleDeleteInvoice,
-    handleUpdateProductPrice,
-    handleViewInvoice,
+    user, setUser, loading,
+    settings, inventory, invoices, dashboardStats,
+    fetchData, fetchDashboardStats,
+    handleLogout, handleSaveSettings,
+    handleAddProduct, handleUpdateProduct, handleDeleteProduct,
+    handleSaveInvoice, handleDeleteInvoice,
+    handleUpdateProductPrice, handleViewInvoice,
   };
 };

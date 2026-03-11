@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Document, Page, View, Text, StyleSheet, pdf,
+  Document, Page, View, Text, StyleSheet, pdf, Image,
 } from '@react-pdf/renderer';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -40,7 +40,8 @@ function formatExpiry(date?: string, mode?: string): string {
   return date;
 }
 
-function dynFontSize(name: string): number {
+function dynFontSize(name: string, override?: number): number {
+  if (override && override > 0) return override;
   const l = name?.length || 0;
   return l <= 12 ? 24 : l <= 20 ? 20 : l <= 30 ? 16 : 13;
 }
@@ -72,9 +73,9 @@ const DLRow = ({ dlNumbers }: { dlNumbers?: string[] }) => {
   );
 };
 
-const CompanyHeader = ({ settings, theme }: { settings: any; theme: string }) => (
+const CompanyHeader = ({ settings, theme, invoiceTitleSize }: { settings: any; theme: string; invoiceTitleSize?: number }) => (
   <View style={{ alignItems: 'center', marginBottom: 6 }}>
-    <Text style={[S.bold, { fontSize: dynFontSize(settings.companyName), color: theme, letterSpacing: 1.5, textTransform: 'uppercase' }]}>
+    <Text style={[S.bold, { fontSize: dynFontSize(settings.companyName, invoiceTitleSize || settings.companyTitleSize), color: theme, letterSpacing: 1.5, textTransform: 'uppercase' }]}>
       {settings.companyName}
     </Text>
     {settings.companyAddress
@@ -122,7 +123,7 @@ const TotalsBlock = ({ invoice, currency, theme }: { invoice: any; currency: str
   );
 };
 
-const TermsBlock = ({ terms, showSignatory, companyName }: { terms?: string; showSignatory?: boolean; companyName: string }) => (
+const TermsBlock = ({ terms, showSignatory, companyName, useDigitalSignature, signatureUrl }: { terms?: string; showSignatory?: boolean; companyName: string; useDigitalSignature?: boolean; signatureUrl?: string }) => (
   <View style={[S.row, { marginTop: 16, justifyContent: 'space-between' }]}>
     {terms ? (
       <View style={{ flex: 1, marginRight: 16 }}>
@@ -134,7 +135,11 @@ const TermsBlock = ({ terms, showSignatory, companyName }: { terms?: string; sho
     ) : <View />}
     {showSignatory && (
       <View style={{ width: 140, alignItems: 'center' }}>
-        <Text style={[S.tiny, S.muted, { marginBottom: 28 }]}>For, {companyName}</Text>
+        {useDigitalSignature && signatureUrl ? (
+          <Image src={signatureUrl} style={{ width: 120, height: 40, objectFit: 'contain', marginBottom: 4 }} />
+        ) : (
+          <Text style={[S.tiny, S.muted, { marginBottom: 28 }]}>For, {companyName}</Text>
+        )}
         <View style={{ borderTopWidth: 1, borderTopColor: '#18181b', width: '100%', paddingTop: 3, alignItems: 'center' }}>
           <Text style={[S.bold, S.tiny, { textTransform: 'uppercase', letterSpacing: 1 }]}>Authorised Signatory</Text>
         </View>
@@ -158,7 +163,7 @@ const MedicalPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
   return (
     <Page size="A4" style={S.page}>
       <DLRow dlNumbers={dlNumbers} />
-      <CompanyHeader settings={settings} theme={theme} />
+      <CompanyHeader settings={settings} theme={theme} invoiceTitleSize={invoice.companyTitleSize} />
 
       <View style={{ alignItems: 'center', marginVertical: 6 }}>
         <Text style={[S.bold, { fontSize: 18, color: theme, letterSpacing: 4, textTransform: 'uppercase' }]}>INVOICE</Text>
@@ -235,7 +240,7 @@ const MedicalPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
         </View>
       </View>
 
-      <TermsBlock terms={invoice.terms} showSignatory={invoice.showSignatory} companyName={settings.companyName} />
+      <TermsBlock terms={invoice.terms} showSignatory={invoice.showSignatory} companyName={settings.companyName} useDigitalSignature={invoice.useDigitalSignature} signatureUrl={settings.signatureUrl} />
     </Page>
   );
 };
@@ -256,7 +261,7 @@ const ModernPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
   return (
     <Page size="A4" style={S.page}>
       <DLRow dlNumbers={dlNumbers} />
-      <CompanyHeader settings={settings} theme={theme} />
+      <CompanyHeader settings={settings} theme={theme} invoiceTitleSize={invoice.companyTitleSize} />
 
       <View style={{ alignItems: 'center', marginVertical: 6 }}>
         <Text style={[S.bold, { fontSize: 18, color: theme, letterSpacing: 4, textTransform: 'uppercase' }]}>INVOICE</Text>
@@ -309,7 +314,7 @@ const ModernPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
       </View>
 
       <TotalsBlock invoice={invoice} currency={currency} theme={theme} />
-      <TermsBlock terms={invoice.terms} showSignatory={invoice.showSignatory} companyName={settings.companyName} />
+      <TermsBlock terms={invoice.terms} showSignatory={invoice.showSignatory} companyName={settings.companyName} useDigitalSignature={invoice.useDigitalSignature} signatureUrl={settings.signatureUrl} />
     </Page>
   );
 };

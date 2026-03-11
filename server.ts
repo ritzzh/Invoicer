@@ -21,6 +21,36 @@ const DB_PATH = process.env.NODE_ENV === "production"
 
 const db = new Database(DB_PATH);
 
+// ── Request logger ──────────────────────────────────────────────────────────
+
+const LOG_COLORS: Record<string, string> = {
+  GET: '\x1b[32m',     // green
+  POST: '\x1b[34m',    // blue
+  PUT: '\x1b[33m',     // yellow
+  PATCH: '\x1b[35m',   // magenta
+  DELETE: '\x1b[31m',  // red
+};
+const RESET = '\x1b[0m';
+const DIM = '\x1b[2m';
+
+function requestLogger(req: Request, res: Response, next: NextFunction) {
+  const start = Date.now();
+  const { method, originalUrl } = req;
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    const color = LOG_COLORS[method] || '';
+    const statusColor = res.statusCode >= 500 ? '\x1b[31m' : res.statusCode >= 400 ? '\x1b[33m' : '\x1b[32m';
+    console.log(
+      `${DIM}${new Date().toISOString()}${RESET} ` +
+      `${color}${method.padEnd(6)}${RESET} ` +
+      `${originalUrl.padEnd(40)} ` +
+      `${statusColor}${res.statusCode}${RESET} ` +
+      `${DIM}${ms}ms${RESET}`
+    );
+  });
+  next();
+}
+
 // --- Database Initialization ---
 
 db.exec(`
@@ -99,6 +129,8 @@ const userMigrations = [
   { name: 'userName', sql: "ALTER TABLE users ADD COLUMN userName TEXT" },
   { name: 'isAdmin', sql: "ALTER TABLE users ADD COLUMN isAdmin INTEGER DEFAULT 0" },
   { name: 'emailAppPassword', sql: "ALTER TABLE users ADD COLUMN emailAppPassword TEXT" },
+  { name: 'signatureUrl', sql: "ALTER TABLE users ADD COLUMN signatureUrl TEXT" },
+  { name: 'companyTitleSize', sql: "ALTER TABLE users ADD COLUMN companyTitleSize INTEGER DEFAULT 0" },
 ];
 
 for (const m of userMigrations) {
@@ -123,6 +155,8 @@ const invoiceMigrations = [
   { name: 'doctorName', sql: "ALTER TABLE invoices ADD COLUMN doctorName TEXT" },
   { name: 'doctorLabel', sql: "ALTER TABLE invoices ADD COLUMN doctorLabel TEXT DEFAULT 'Doctor'" },
   { name: 'dlNumbers', sql: "ALTER TABLE invoices ADD COLUMN dlNumbers TEXT" },
+  { name: 'useDigitalSignature', sql: "ALTER TABLE invoices ADD COLUMN useDigitalSignature INTEGER DEFAULT 0" },
+  { name: 'companyTitleSize', sql: "ALTER TABLE invoices ADD COLUMN companyTitleSize INTEGER DEFAULT 0" },
 ];
 
 for (const m of invoiceMigrations) {
@@ -207,8 +241,9 @@ async function startServer() {
   const app = express();
   const PORT = parseInt(process.env.PORT || "3000", 10);
 
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));  // larger limit for base64 signature images
   app.use(cookieParser());
+  app.use(requestLogger);
 
   // --- Auth Routes ---
 
@@ -275,11 +310,13 @@ async function startServer() {
     const { password: _, ...safeUser } = user;
     safeUser.hasEmailAppPassword = !!user.emailAppPassword;
     safeUser.emailAppPassword = undefined;
+    safeUser.signatureUrl = user.signatureUrl || '';
+    safeUser.companyTitleSize = user.companyTitleSize || 0;
     res.json(safeUser);
   });
 
   app.post("/api/settings", authenticate, (req: any, res) => {
-    const { companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency, dlNumbers, userName, emailAppPassword } = req.body;
+    const { companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency, dlNumbers, userName, emailAppPassword, signatureUrl, companyTitleSize } = req.body;
     // Only update emailAppPassword if a non-empty value is provided
     if (emailAppPassword && emailAppPassword.trim()) {
       db.prepare(`UPDATE users SET emailAppPassword = ? WHERE id = ?`).run(emailAppPassword.trim(), req.userId);
@@ -288,10 +325,11 @@ async function startServer() {
       UPDATE users SET 
         companyName = ?, companyAddress = ?, companyEmail = ?, 
         companyPhone = ?, companyWebsite = ?, logoUrl = ?, currency = ?,
-        dlNumbers = ?, userName = ?
+        dlNumbers = ?, userName = ?, signatureUrl = ?, companyTitleSize = ?
       WHERE id = ?
     `).run(companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency,
-      dlNumbers ? JSON.stringify(dlNumbers) : null, userName || null, req.userId);
+      dlNumbers ? JSON.stringify(dlNumbers) : null, userName || null,
+      signatureUrl || null, companyTitleSize || 0, req.userId);
     res.json({ success: true });
   });
 
@@ -335,6 +373,104 @@ async function startServer() {
     res.json(invoices);
   });
 
+  // ── Dashboard stats ────────────────────────────────────────────────────────
+  app.get("/api/dashboard/stats", authenticate, (req: any, res) => {
+    const userId = req.userId;
+
+    // Revenue summary
+    const revSummary = db.prepare(`
+      SELECT
+        COALESCE(SUM(total), 0)                                             AS totalRevenue,
+        COALESCE(SUM(CASE WHEN strftime('%Y-%m', date) = strftime('%Y-%m', 'now') THEN total ELSE 0 END), 0) AS monthlyRevenue,
+        COUNT(*)                                                             AS totalInvoices,
+        COALESCE(SUM(CASE WHEN strftime('%Y-%m', date) = strftime('%Y-%m', 'now') THEN 1 ELSE 0 END), 0)    AS monthlyInvoices
+      FROM invoices
+      WHERE userId = ?
+    `).get(userId) as any;
+
+    // Revenue per month for last 6 months (SQLite date arithmetic)
+    const monthlyChart = db.prepare(`
+      SELECT
+        strftime('%Y-%m', date)          AS month,
+        COALESCE(SUM(total), 0)          AS revenue,
+        COUNT(*)                          AS count
+      FROM invoices
+      WHERE userId = ?
+        AND date >= date('now', '-5 months', 'start of month')
+      GROUP BY strftime('%Y-%m', date)
+      ORDER BY month ASC
+    `).all(userId) as any[];
+
+    // Recent 5 invoices
+    const recentInvoices = db.prepare(`
+      SELECT id, invoiceNumber, clientName, total, date, template
+      FROM invoices
+      WHERE userId = ?
+      ORDER BY id DESC
+      LIMIT 5
+    `).all(userId) as any[];
+
+    // Per-product sold stats — join invoice_items → invoices → products
+    // Covers ALL items: those with a productId (from inventory) and those without (free-text)
+    const productSales = db.prepare(`
+      SELECT
+        ii.productId,
+        COALESCE(p.name, ii.description)  AS name,
+        p.unit                             AS inventoryUnit,
+        ii.unit                            AS invoiceUnit,
+        COALESCE(p.basePrice, 0)          AS basePrice,
+        SUM(ii.quantity)                  AS totalQty,
+        SUM(ii.total)                     AS totalRevenue,
+        COUNT(DISTINCT ii.invoiceId)      AS invoiceCount,
+        MIN(i.date)                       AS firstSold,
+        MAX(i.date)                       AS lastSold
+      FROM invoice_items ii
+      JOIN invoices i ON i.id = ii.invoiceId AND i.userId = ?
+      LEFT JOIN products p ON p.id = ii.productId AND p.userId = ?
+      WHERE ii.description IS NOT NULL AND ii.description != ''
+      GROUP BY
+        CASE WHEN ii.productId IS NOT NULL THEN CAST(ii.productId AS TEXT) ELSE ii.description END
+      ORDER BY totalQty DESC
+    `).all(userId, userId) as any[];
+
+    // Inventory products with their stock status (all products, even unsold ones)
+    const inventoryStatus = db.prepare(`
+      SELECT
+        p.id,
+        p.name,
+        p.basePrice,
+        p.unit,
+        p.batchNo,
+        p.expiryDate,
+        COALESCE(s.totalQty, 0)       AS soldQty,
+        COALESCE(s.totalRevenue, 0)   AS soldRevenue,
+        COALESCE(s.invoiceCount, 0)   AS invoiceCount
+      FROM products p
+      LEFT JOIN (
+        SELECT
+          ii.productId,
+          SUM(ii.quantity)        AS totalQty,
+          SUM(ii.total)           AS totalRevenue,
+          COUNT(DISTINCT ii.invoiceId) AS invoiceCount
+        FROM invoice_items ii
+        JOIN invoices i ON i.id = ii.invoiceId AND i.userId = ?
+        WHERE ii.productId IS NOT NULL
+        GROUP BY ii.productId
+      ) s ON s.productId = p.id
+      WHERE p.userId = ?
+      ORDER BY soldQty DESC
+    `).all(userId, userId) as any[];
+
+    res.json({
+      summary: revSummary,
+      monthlyChart,
+      recentInvoices,
+      productSales,       // all items ever invoiced (with/without productId)
+      inventoryStatus,    // all inventory products with sold stats merged in
+    });
+  });
+
+
   app.get("/api/invoices/:id", authenticate, (req: any, res) => {
     const invoice = db.prepare("SELECT * FROM invoices WHERE id = ? AND userId = ?").get(req.params.id, req.userId) as any;
     if (invoice) {
@@ -349,7 +485,8 @@ async function startServer() {
       invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel,
       doctorName, doctorLabel, dlNumbers,
       date, dueDate, discountPercentage, 
-      roundOff, total, balanceDue, items, template, themeColor, terms, showSignatory
+      roundOff, total, balanceDue, items, template, themeColor, terms, showSignatory,
+      useDigitalSignature, companyTitleSize
     } = req.body;
 
     const transaction = db.transaction(() => {
@@ -358,14 +495,16 @@ async function startServer() {
           userId, invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel,
           doctorName, doctorLabel, dlNumbers,
           date, dueDate, discountPercentage, 
-          roundOff, total, balanceDue, template, themeColor, terms, showSignatory
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          roundOff, total, balanceDue, template, themeColor, terms, showSignatory,
+          useDigitalSignature, companyTitleSize
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         req.userId, invoiceNumber, clientName, clientEmail, clientPhone || null, clientAddress,
         clientLabel || 'Billed To', doctorName || null, doctorLabel || 'Doctor',
         dlNumbers ? JSON.stringify(dlNumbers) : null,
         date, dueDate || null, discountPercentage, 
-        roundOff, total, balanceDue || 0, template, themeColor || '#000000', terms, showSignatory ? 1 : 0
+        roundOff, total, balanceDue || 0, template, themeColor || '#000000', terms, showSignatory ? 1 : 0,
+        useDigitalSignature ? 1 : 0, companyTitleSize || 0
       );
 
       const invoiceId = result.lastInsertRowid;
@@ -391,7 +530,8 @@ async function startServer() {
       invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel,
       doctorName, doctorLabel, dlNumbers,
       date, dueDate, discountPercentage, 
-      roundOff, total, balanceDue, items, template, themeColor, terms, showSignatory
+      roundOff, total, balanceDue, items, template, themeColor, terms, showSignatory,
+      useDigitalSignature, companyTitleSize
     } = req.body;
 
     const transaction = db.transaction(() => {
@@ -400,7 +540,8 @@ async function startServer() {
           invoiceNumber = ?, clientName = ?, clientEmail = ?, clientPhone = ?, clientAddress = ?,
           clientLabel = ?, doctorName = ?, doctorLabel = ?, dlNumbers = ?,
           date = ?, dueDate = ?, discountPercentage = ?, 
-          roundOff = ?, total = ?, balanceDue = ?, template = ?, themeColor = ?, terms = ?, showSignatory = ?
+          roundOff = ?, total = ?, balanceDue = ?, template = ?, themeColor = ?, terms = ?, showSignatory = ?,
+          useDigitalSignature = ?, companyTitleSize = ?
         WHERE id = ? AND userId = ?
       `).run(
         invoiceNumber, clientName, clientEmail, clientPhone || null, clientAddress,
@@ -408,6 +549,7 @@ async function startServer() {
         dlNumbers ? JSON.stringify(dlNumbers) : null,
         date, dueDate || null, discountPercentage, 
         roundOff, total, balanceDue || 0, template, themeColor || '#000000', terms, showSignatory ? 1 : 0,
+        useDigitalSignature ? 1 : 0, companyTitleSize || 0,
         req.params.id, req.userId
       );
 

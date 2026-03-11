@@ -12,6 +12,7 @@ import { InventoryManager } from './components/inventory/InventoryManager';
 import { SettingsView } from './components/settings/SettingsView';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { useApp } from './hooks/useApp';
+import { useToast } from './components/shared/Toast';
 import { Invoice } from './types';
 import { formatCurrency } from './lib/utils';
 
@@ -23,9 +24,19 @@ export default function App() {
   const [emailSending, setEmailSending] = useState(false);
   const [emailModal, setEmailModal] = useState<{ invoice: Invoice } | null>(null);
   const [emailRecipient, setEmailRecipient] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; label: string } | null>(null);
+
+  const { success, error, warning } = useToast();
+
+  // Listen for warning events dispatched by child components (e.g. InvoiceEditor)
+  React.useEffect(() => {
+    const handler = (e: Event) => warning((e as CustomEvent).detail);
+    window.addEventListener('app-warning', handler);
+    return () => window.removeEventListener('app-warning', handler);
+  }, [warning]);
 
   const {
-    user, setUser, loading, settings, inventory, invoices, fetchData,
+    user, setUser, loading, settings, inventory, invoices, dashboardStats, fetchData,
     handleLogout, handleSaveSettings, handleAddProduct, handleUpdateProduct,
     handleDeleteProduct, handleSaveInvoice, handleDeleteInvoice,
     handleUpdateProductPrice, handleViewInvoice,
@@ -53,12 +64,17 @@ export default function App() {
   };
 
   const onDeleteInvoice = (id: number) => {
-    handleDeleteInvoice(id, () => {
+    setDeleteConfirm({ id, label: `Invoice #${invoices.find(i => i.id === id)?.invoiceNumber || id}` });
+  };
+
+  const confirmDelete = () => {
+    if (!deleteConfirm) return;
+    handleDeleteInvoice(deleteConfirm.id, () => {
       setSelectedInvoice(null);
       setActiveTab('invoices');
     });
+    setDeleteConfirm(null);
   };
-
 
   const openEmailModal = (invoice: Invoice) => {
     setEmailRecipient(invoice.clientEmail || '');
@@ -69,7 +85,7 @@ export default function App() {
     if (!emailModal) return;
     const { invoice } = emailModal;
     const to = emailRecipient.trim();
-    if (!to) { alert('Please enter a recipient email.'); return; }
+    if (!to) { warning('Please enter a recipient email.'); return; }
     setEmailSending(true);
     try {
       const subject = `Invoice ${invoice.invoiceNumber} from ${settings.companyName}`;
@@ -82,14 +98,14 @@ export default function App() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert(`Email sent to ${to} with PDF attached ✓`);
+        success(`Email sent to ${to} with PDF attached`);
         setEmailModal(null);
       } else {
-        alert(`Email failed: ${data.error}`);
+        error(`Email failed: ${data.error}`);
       }
     } catch (err) {
       console.error('sendEmail error:', err);
-      alert('Failed to send email. Check your app password in Settings.');
+      error('Failed to send email. Check your app password in Settings.');
     } finally {
       setEmailSending(false);
     }
@@ -164,7 +180,7 @@ export default function App() {
             </motion.div>
           ) : (
             <motion.div key={activeTab} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
-              {activeTab === 'dashboard' && <Dashboard invoices={invoices} settings={settings} />}
+              {activeTab === 'dashboard' && <Dashboard stats={dashboardStats} settings={settings} />}
               {activeTab === 'invoices' && (
                 <InvoiceList invoices={invoices} onNew={() => setIsCreating(true)} onView={onViewInvoice} onDelete={onDeleteInvoice} currency={settings.currency} settings={settings} />
               )}
@@ -210,6 +226,25 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-5 sm:p-6 w-full max-w-sm">
+            <h3 className="text-lg font-bold mb-2">Delete Invoice</h3>
+            <p className="text-sm text-zinc-500 mb-5">
+              Are you sure you want to delete <span className="font-semibold text-zinc-700">{deleteConfirm.label}</span>? This cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setDeleteConfirm(null)} className="btn-secondary flex-1 text-sm">Cancel</button>
+              <button onClick={confirmDelete} className="flex-1 text-sm px-4 py-2 rounded-xl font-medium bg-red-600 text-white hover:bg-red-700 transition-colors">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

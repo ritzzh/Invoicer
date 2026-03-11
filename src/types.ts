@@ -8,6 +8,8 @@ export interface Settings {
   currency: string;
   dlNumbers: string[];      // shared DL numbers stored in user profile
   userName: string;         // user's own name (autofills doctor name)
+  signatureUrl: string;     // base64 or URL of authorised signature image
+  companyTitleSize?: number; // font size override for company title on invoices
 }
 
 export interface Product {
@@ -56,4 +58,6 @@ export interface Invoice {
   themeColor?: string;
   terms?: string;
   showSignatory?: boolean;
+  useDigitalSignature?: boolean; // whether to embed the signature image from settings
+  companyTitleSize?: number;     // per-invoice font size override for company name
 }

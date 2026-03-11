@@ -12,11 +12,10 @@ export const InvoiceTitle = ({ themeColor }: { themeColor: string }) => (
   </div>
 );
 
-// Dynamically scales company name based on character length
-export const CompanyName = ({ name, themeColor }: { name: string; themeColor: string }) => {
+// Dynamically scales company name based on character length, with optional manual override
+export const CompanyName = ({ name, themeColor, titleSize }: { name: string; themeColor: string; titleSize?: number }) => {
   const len = name?.length || 0;
-  // Progressively reduce font as name gets longer
-  const fontSize =
+  const autoSize =
     len <= 12 ? 'clamp(2.2rem, 5vw, 3.2rem)' :
     len <= 20 ? 'clamp(1.6rem, 4vw, 2.4rem)' :
     len <= 30 ? 'clamp(1.2rem, 3vw, 1.8rem)' :
@@ -28,7 +27,7 @@ export const CompanyName = ({ name, themeColor }: { name: string; themeColor: st
       style={{
         color: themeColor,
         letterSpacing: len > 20 ? '0.06em' : '0.12em',
-        fontSize,
+        fontSize: titleSize && titleSize > 0 ? `${titleSize}px` : autoSize,
         lineHeight: 1.2,
         wordBreak: 'break-word',
         overflowWrap: 'anywhere',
@@ -38,6 +37,9 @@ export const CompanyName = ({ name, themeColor }: { name: string; themeColor: st
     </h1>
   );
 };
+
+
+
 
 export const DLNumbers = ({ dlNumbers }: { dlNumbers?: string[] }) => {
   const filled = (dlNumbers || []).filter((d) => d && d.trim());
