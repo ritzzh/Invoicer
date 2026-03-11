@@ -13,7 +13,6 @@ export const SettingsView = ({ settings, onSave }: SettingsViewProps) => {
     signatureUrl: settings.signatureUrl || '',
     companyTitleSize: settings.companyTitleSize || 0,
   });
-  const [showPass, setShowPass] = useState(false);
   const [sigPreview, setSigPreview] = useState<string>(settings.signatureUrl || '');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -164,28 +163,6 @@ export const SettingsView = ({ settings, onSave }: SettingsViewProps) => {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Email App Password */}
-        <div className="border-t border-zinc-100 pt-4 space-y-2">
-          <label className="text-xs font-bold text-zinc-400 uppercase">
-            Gmail App Password <span className="normal-case font-normal text-zinc-300">(for sending emails)</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showPass ? 'text' : 'password'}
-              className="input pr-10"
-              placeholder={(settings as any).hasEmailAppPassword ? '••••••••••••••••' : 'Enter app password'}
-              value={formData.emailAppPassword || ''}
-              onChange={e => setFormData({ ...formData, emailAppPassword: e.target.value })}
-            />
-            <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700">
-              {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
-            </button>
-          </div>
-          {(settings as any).hasEmailAppPassword && (
-            <p className="text-xs text-emerald-600 font-medium">✓ App password is saved. Leave blank to keep current password.</p>
-          )}
         </div>
 
         <button onClick={() => onSave(formData as any)} className="btn-primary w-full py-3">
