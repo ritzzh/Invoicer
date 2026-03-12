@@ -47,7 +47,7 @@ export const DLNumbers = ({ dlNumbers }: { dlNumbers?: string[] }) => {
   return (
     <div className="text-right">
       {filled.map((dl, i) => (
-        <p key={i} className="text-[8px] text-zinc-500 font-medium leading-tight">
+        <p key={i} className="text-[8px] text-zinc-500 font-bold leading-tight">
           DL: {dl}
         </p>
       ))}
