@@ -44,10 +44,14 @@ export const CompanyName = ({ name, themeColor, titleSize }: { name: string; the
 export const DLNumbers = ({ dlNumbers }: { dlNumbers?: string[] }) => {
   const filled = (dlNumbers || []).filter((d) => d && d.trim());
   if (!filled.length) return null;
+
   return (
     <div className="text-right">
       {filled.map((dl, i) => (
-        <p key={i} className="text-[8px] text-zinc-500 font-bold leading-tight">
+        <p
+          key={i}
+          className="text-[10px] text-zinc-700 font-bold leading-snug"
+        >
           DL: {dl}
         </p>
       ))}
