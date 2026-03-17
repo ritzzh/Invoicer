@@ -43,20 +43,13 @@ function formatExpiry(date?: string, mode?: string): string {
 function dynFontSize(name: string, override?: number): number {
   if (override && override > 0) return override;
   const l = name?.length || 0;
-  // Scale down aggressively for long names to stay on one line in A4
-  if (l <= 10) return 26;
-  if (l <= 15) return 22;
-  if (l <= 20) return 18;
-  if (l <= 25) return 15;
-  if (l <= 32) return 13;
-  if (l <= 40) return 11;
-  return 9;
+  return l <= 12 ? 24 : l <= 20 ? 20 : l <= 30 ? 16 : 13;
 }
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
 const S = StyleSheet.create({
-  page:   { fontFamily: 'Helvetica', fontSize: 10, paddingHorizontal: 20, paddingVertical: 22, backgroundColor: '#ffffff' },
+  page:   { fontFamily: 'Helvetica', fontSize: 10, padding: 24, backgroundColor: '#ffffff' },
   row:    { flexDirection: 'row' },
   bold:   { fontFamily: 'Helvetica-Bold' },
   right:  { textAlign: 'right' },
@@ -87,23 +80,15 @@ const DLRow = ({ dlNumbers }: { dlNumbers?: string[] }) => {
 
 const CompanyHeader = ({ settings, theme, invoiceTitleSize }: { settings: any; theme: string; invoiceTitleSize?: number }) => (
   <View style={{ alignItems: 'center', marginBottom: 6 }}>
-    <Text
-      style={[S.bold, {
-        fontSize: dynFontSize(settings.companyName, invoiceTitleSize || settings.companyTitleSize),
-        color: theme,
-        textTransform: 'uppercase',
-        textAlign: 'center',
-      }]}
-      numberOfLines={1}
-    >
+    <Text style={[S.bold, { fontSize: dynFontSize(settings.companyName, invoiceTitleSize || settings.companyTitleSize), color: theme, letterSpacing: 1.5, textTransform: 'uppercase' }]}>
       {settings.companyName}
     </Text>
     {settings.companyAddress
-      ? <Text style={[S.small, S.bold, S.muted, { marginTop: 2, textAlign: 'center' }]}>{settings.companyAddress}</Text>
+      ? <Text style={[S.small, S.bold, S.muted, { marginTop: 2 }]}>{settings.companyAddress}</Text>
       : null}
-    <View style={[S.row, { marginTop: 3, gap: 14, justifyContent: 'center' }]}>
-      {settings.companyPhone ? <Text style={[{ fontSize: 9.5 }, S.bold, S.muted]}>{settings.companyPhone}</Text> : null}
-      {settings.companyEmail ? <Text style={[{ fontSize: 9.5 }, S.bold, S.muted]}>{settings.companyEmail}</Text> : null}
+    <View style={[S.row, { marginTop: 2, gap: 12 }]}>
+      {settings.companyPhone ? <Text style={[{ fontSize: 9 }, S.bold, S.muted]}>{settings.companyPhone}</Text> : null}
+      {settings.companyEmail ? <Text style={[{ fontSize: 9 }, S.bold, S.muted]}>{settings.companyEmail}</Text> : null}
     </View>
   </View>
 );
@@ -194,13 +179,10 @@ const MedicalPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
       <CompanyHeader settings={settings} theme={theme} invoiceTitleSize={invoice.companyTitleSize} />
 
       {/* INVOICE title row with full box border and ORIGINAL FOR RECIPIENT at right */}
-      <View style={{ marginVertical: 4, borderWidth: 2, borderColor: theme, flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingHorizontal: 8 }}>
-        <View style={{ flex: 1 }} />
-        <Text style={[S.bold, { fontSize: 20, color: theme, letterSpacing: 4, textTransform: 'uppercase', textAlign: 'center' }]}>INVOICE</Text>
-        <View style={{ flex: 1, alignItems: 'flex-end' }}>
-          <Text style={[S.tiny, S.muted, { textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'right' }]}>ORIGINAL FOR</Text>
-          <Text style={[S.tiny, S.muted, { textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'right' }]}>RECIPIENT</Text>
-        </View>
+      <View style={{ marginVertical: 4, borderWidth: 2, borderColor: theme, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 3, paddingHorizontal: 8 }}>
+        <View style={{ width: 110 }} />
+        <Text style={[S.bold, { fontSize: 20, color: theme, letterSpacing: 4, textTransform: 'uppercase' }]}>INVOICE</Text>
+        <Text style={[S.tiny, S.muted, { width: 110, textAlign: 'right', textTransform: 'uppercase', letterSpacing: 0.5 }]}>ORIGINAL FOR RECIPIENT</Text>
       </View>
 
       {/* Invoice No + Date */}
@@ -308,7 +290,7 @@ const ModernPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
 
       <View style={{ alignItems: 'center', marginVertical: 6 }}>
         <Text style={[S.bold, { fontSize: 18, color: theme, letterSpacing: 4, textTransform: 'uppercase' }]}>INVOICE</Text>
-        <Text style={[S.tiny, S.muted, { textAlign: 'center' }]}>ORIGINAL FOR RECIPIENT</Text>
+        <Text style={[S.tiny, S.muted]}>ORIGINAL FOR RECIPIENT</Text>
       </View>
 
       <View style={[S.row, { justifyContent: 'space-between', backgroundColor: '#f4f4f5', padding: 10, borderRadius: 6, marginBottom: 12 }]}>

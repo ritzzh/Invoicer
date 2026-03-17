@@ -50,10 +50,10 @@ export const DLNumbers = ({ dlNumbers }: { dlNumbers?: string[] }) => {
   return (
     <div className="text-right">
       <div className="inline-flex gap-0">
-        <span className="text-[10px] text-zinc-700 font-bold leading-snug whitespace-nowrap">DL:&nbsp;</span>
+        <span className="text-[12px] text-zinc-700 font-bold leading-snug whitespace-nowrap">DL:&nbsp;</span>
         <div className="flex flex-col items-start">
           {filled.map((dl, i) => (
-            <span key={i} className="text-[10px] text-zinc-700 font-bold leading-snug whitespace-nowrap">
+            <span key={i} className="text-[12px] text-zinc-700 font-bold leading-snug whitespace-nowrap">
               {dl}
             </span>
           ))}

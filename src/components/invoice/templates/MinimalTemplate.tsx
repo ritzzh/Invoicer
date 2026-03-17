@@ -117,10 +117,18 @@ export const MinimalTemplate = ({ invoice, settings }: TemplateProps) => {
 
       <div className="mt-auto pt-4 grid grid-cols-2 gap-6">
         <div>
-          <p className="font-bold text-zinc-900 text-[9px] uppercase tracking-widest mb-1">Terms</p>
-          <ul className="list-disc list-inside text-[9px] space-y-0.5 text-zinc-500">
-            {invoice.terms?.split('\n').filter(t => t.trim()).map((term, i) => <li key={i}>{term}</li>)}
-          </ul>
+          <p className="font-bold underline text-zinc-900 mb-1 text-[10px]">
+            Terms and Conditions
+          </p>
+
+          <div className="font-bold text-[9px] space-y-0.5 text-zinc-800">
+            {invoice.terms
+              ?.split('\n')
+              .filter(t => t.trim())
+              .map((term, i) => (
+                <p key={i}>{term}</p>
+              ))}
+          </div>
         </div>
         {invoice.showSignatory && (
           <div className="flex justify-end items-end">

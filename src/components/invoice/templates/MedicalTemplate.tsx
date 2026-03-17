@@ -30,7 +30,7 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
         </div>
       </div>
 
-      <div className="relative mb-3" style={{ border: `2px solid ${themeColor}`, padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="relative mb-3" style={{ backgroundColor: '#f5f5f5', border: `2px solid ${themeColor}`, padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ width: '150px' }} />
         <span
           className="font-black tracking-[0.5em] uppercase"
@@ -38,7 +38,7 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
         >
           INVOICE
         </span>
-        <span style={{ width: '150px', textAlign: 'right', fontSize: '8px', fontWeight: 600, letterSpacing: '0.05em', color: '#27272a', textTransform: 'uppercase' }}>
+        <span style={{ width: '150px', textAlign: 'right', fontSize: '9px', fontWeight: 600, letterSpacing: '0.05em', color: '#000000', textTransform: 'uppercase' }}>
           ORIGINAL FOR RECIPIENT
         </span>
       </div>
@@ -138,10 +138,18 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
 
       <div className="mt-3 grid grid-cols-2 gap-4">
         <div>
-          <p className="font-bold underline text-zinc-900 mb-1 text-[10px]">Terms and Conditions</p>
-          <ul className="list-disc list-inside text-[9px] space-y-0.5 text-zinc-800">
-            {invoice.terms?.split('\n').filter(t => t.trim()).map((term, i) => <li key={i}>{term}</li>)}
-          </ul>
+          <p className="font-bold underline text-zinc-900 mb-1 text-[10px]">
+            Terms and Conditions
+          </p>
+
+          <div className="font-bold text-[9px] space-y-0.5 text-zinc-800">
+            {invoice.terms
+              ?.split('\n')
+              .filter(t => t.trim())
+              .map((term, i) => (
+                <p key={i}>{term}</p>
+              ))}
+          </div>
         </div>
         {invoice.showSignatory && (
           <div className="flex justify-end items-end">
