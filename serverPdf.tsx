@@ -54,7 +54,7 @@ const S = StyleSheet.create({
   bold:   { fontFamily: 'Helvetica-Bold' },
   right:  { textAlign: 'right' },
   center: { textAlign: 'center' },
-  muted:  { color: '#71717a' },
+  muted:  { color: '#27272a' },
   tiny:   { fontSize: 8 },
   small:  { fontSize: 9 },
 });
@@ -66,9 +66,14 @@ const DLRow = ({ dlNumbers }: { dlNumbers?: string[] }) => {
   if (!filled.length) return null;
   return (
     <View style={{ alignItems: 'flex-end', marginBottom: 2 }}>
-      {filled.map((d: string, i: number) => (
-        <Text key={i} style={[S.tiny, S.muted]}>DL: {d}</Text>
-      ))}
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+        <Text style={[S.tiny, S.bold, { marginRight: 2 }]}>DL:</Text>
+        <View>
+          {filled.map((d: string, i: number) => (
+            <Text key={i} style={[S.tiny, S.bold]}>{d}</Text>
+          ))}
+        </View>
+      </View>
     </View>
   );
 };
@@ -79,11 +84,11 @@ const CompanyHeader = ({ settings, theme, invoiceTitleSize }: { settings: any; t
       {settings.companyName}
     </Text>
     {settings.companyAddress
-      ? <Text style={[S.small, S.muted, { marginTop: 2 }]}>{settings.companyAddress}</Text>
+      ? <Text style={[S.small, S.bold, S.muted, { marginTop: 2 }]}>{settings.companyAddress}</Text>
       : null}
     <View style={[S.row, { marginTop: 2, gap: 12 }]}>
-      {settings.companyPhone ? <Text style={[S.tiny, S.muted]}>{settings.companyPhone}</Text> : null}
-      {settings.companyEmail ? <Text style={[S.tiny, S.muted]}>{settings.companyEmail}</Text> : null}
+      {settings.companyPhone ? <Text style={[{ fontSize: 9 }, S.bold, S.muted]}>{settings.companyPhone}</Text> : null}
+      {settings.companyEmail ? <Text style={[{ fontSize: 9 }, S.bold, S.muted]}>{settings.companyEmail}</Text> : null}
     </View>
   </View>
 );
@@ -135,10 +140,11 @@ const TermsBlock = ({ terms, showSignatory, companyName, useDigitalSignature, si
     ) : <View />}
     {showSignatory && (
       <View style={{ width: 140, alignItems: 'center' }}>
+        <Text style={[S.tiny, S.muted, { marginBottom: 4 }]}>For, {companyName}</Text>
         {useDigitalSignature && signatureUrl ? (
           <Image src={signatureUrl} style={{ width: 120, height: 40, objectFit: 'contain', marginBottom: 4 }} />
         ) : (
-          <Text style={[S.tiny, S.muted, { marginBottom: 28 }]}>For, {companyName}</Text>
+          <View style={{ height: 40 }} />
         )}
         <View style={{ borderTopWidth: 1, borderTopColor: '#18181b', width: '100%', paddingTop: 3, alignItems: 'center' }}>
           <Text style={[S.bold, S.tiny, { textTransform: 'uppercase', letterSpacing: 1 }]}>Authorised Signatory</Text>
@@ -158,78 +164,97 @@ const MedicalPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
   const dlNumbers = invoice.dlNumbers?.length ? invoice.dlNumbers : settings.dlNumbers;
   const doctorLabel = invoice.doctorLabel || 'Doctor';
   const colW = ['5%', '28%', '8%', '12%', '10%', '8%', '14%', '15%'];
-  const headers = ['Sr.', 'Product', 'Unit', 'Batch', 'Expiry', 'Qty', 'MRP', 'Amount'];
+  const headers = ['Sr.', 'Product Name', 'Pack', 'Batch', 'Expiry', 'Qty', 'MRP', 'Amount'];
+
+  // Format date as DD-MM-YYYY
+  const formattedDate = invoice.date ? invoice.date.split('-').reverse().join('-') : '';
+
+  const bdrColor = '#52525b';
+  const bdrWidth = 1.5;
+  const thinBdrColor = '#a1a1aa';
 
   return (
-    <Page size="A4" style={S.page}>
+    <Page size="A4" style={[S.page, { borderWidth: 2.5, borderColor: '#27272a' }]}>
       <DLRow dlNumbers={dlNumbers} />
       <CompanyHeader settings={settings} theme={theme} invoiceTitleSize={invoice.companyTitleSize} />
 
-      <View style={{ alignItems: 'center', marginVertical: 6 }}>
-        <Text style={[S.bold, { fontSize: 18, color: theme, letterSpacing: 4, textTransform: 'uppercase' }]}>INVOICE</Text>
-        <Text style={[S.tiny, S.muted]}>ORIGINAL FOR RECIPIENT</Text>
+      {/* INVOICE title row with full box border and ORIGINAL FOR RECIPIENT at right */}
+      <View style={{ marginVertical: 4, borderWidth: 2, borderColor: theme, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 3, paddingHorizontal: 8 }}>
+        <View style={{ width: 110 }} />
+        <Text style={[S.bold, { fontSize: 20, color: theme, letterSpacing: 4, textTransform: 'uppercase' }]}>INVOICE</Text>
+        <Text style={[S.tiny, S.muted, { width: 110, textAlign: 'right', textTransform: 'uppercase', letterSpacing: 0.5 }]}>ORIGINAL FOR RECIPIENT</Text>
       </View>
 
-      <View style={[S.row, { justifyContent: 'space-between', borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#a1a1aa', paddingVertical: 4, marginBottom: 8 }]}>
-        <Text style={S.small}><Text style={[S.bold, S.muted]}>Invoice No: </Text>{invoice.invoiceNumber}</Text>
-        <Text style={S.small}><Text style={[S.bold, S.muted]}>Date: </Text>{invoice.date}</Text>
+      {/* Invoice No + Date */}
+      <View style={[S.row, { justifyContent: 'space-between', borderWidth: bdrWidth, borderColor: bdrColor, paddingVertical: 4, paddingHorizontal: 8, marginBottom: 8 }]}>
+        <Text style={S.small}><Text style={[S.bold, { color: '#27272a' }]}>Invoice No: </Text>{invoice.invoiceNumber}</Text>
+        <Text style={S.small}><Text style={[S.bold, { color: '#27272a' }]}>Date: </Text>{formattedDate}</Text>
       </View>
 
+      {/* Client info */}
       <View style={{ marginBottom: 8 }}>
         <Text style={[S.bold, { fontSize: 11 }]}>
-          <Text style={{ fontFamily: 'Helvetica', color: '#71717a' }}>{invoice.clientLabel || 'Patient'}: </Text>
+          <Text style={{ fontFamily: 'Helvetica', color: '#27272a' }}>{invoice.clientLabel || 'Patient'}: </Text>
           {(invoice.clientName || '').toUpperCase()}
         </Text>
         {invoice.doctorName ? (
           <Text style={[S.bold, { fontSize: 10, marginTop: 2 }]}>
-            <Text style={{ fontFamily: 'Helvetica', color: '#71717a' }}>{doctorLabel}: </Text>
+            <Text style={{ fontFamily: 'Helvetica', color: '#27272a' }}>{doctorLabel}: </Text>
             {invoice.doctorName.toUpperCase()}
           </Text>
         ) : null}
         {invoice.clientPhone ? <Text style={[S.tiny, S.muted, { marginTop: 2 }]}>Tel: {invoice.clientPhone}</Text> : null}
       </View>
 
-      {/* Items table */}
-      <View style={{ borderWidth: 1, borderColor: '#a1a1aa', marginBottom: 8 }}>
-        <View style={[S.row, { backgroundColor: '#f4f4f5', borderBottomWidth: 1, borderBottomColor: '#a1a1aa' }]}>
+      {/* Items table with bold borders */}
+      <View style={{ borderWidth: bdrWidth, borderColor: bdrColor, marginBottom: 8 }}>
+        {/* Header row */}
+        <View style={[S.row, { backgroundColor: '#f4f4f5', borderBottomWidth: bdrWidth, borderBottomColor: bdrColor }]}>
           {headers.map((h, i) => (
-            <Text key={i} style={[S.bold, S.tiny, { width: colW[i], padding: 4, textTransform: 'uppercase', textAlign: i === 0 ? 'center' : i >= 5 ? 'right' : 'left' }]}>{h}</Text>
+            <Text key={i} style={[S.bold, S.tiny, {
+              width: colW[i], padding: 4, textTransform: 'uppercase',
+              textAlign: i === 0 ? 'center' : i >= 5 ? 'right' : 'left',
+              borderRightWidth: i < headers.length - 1 ? bdrWidth : 0,
+              borderRightColor: bdrColor,
+            }]}>{h}</Text>
           ))}
         </View>
+        {/* Item rows */}
         {invoice.items.map((item: any, idx: number) => (
-          <View key={idx} style={[S.row, { borderBottomWidth: 0.5, borderBottomColor: '#e4e4e7' }]}>
-            <Text style={[S.tiny, { width: colW[0], padding: 3, textAlign: 'center' }]}>{idx + 1}</Text>
-            <Text style={[S.tiny, { width: colW[1], padding: 3 }]}>{item.description}</Text>
-            <Text style={[S.tiny, { width: colW[2], padding: 3, textAlign: 'center' }]}>{item.unit || '-'}</Text>
-            <Text style={[S.tiny, { width: colW[3], padding: 3, textAlign: 'center' }]}>{item.batchNo || '-'}</Text>
-            <Text style={[S.tiny, { width: colW[4], padding: 3, textAlign: 'center' }]}>{formatExpiry(item.expiryDate, item.expiryMode)}</Text>
-            <Text style={[S.tiny, { width: colW[5], padding: 3, textAlign: 'right' }]}>{item.quantity}</Text>
-            <Text style={[S.tiny, { width: colW[6], padding: 3, textAlign: 'right' }]}>{item.unitPrice.toFixed(2)}</Text>
+          <View key={idx} style={[S.row, { borderBottomWidth: 0.5, borderBottomColor: thinBdrColor }]}>
+            <Text style={[S.tiny, { width: colW[0], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{idx + 1}</Text>
+            <Text style={[S.tiny, { width: colW[1], padding: 3, borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.description}</Text>
+            <Text style={[S.tiny, { width: colW[2], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.unit || '-'}</Text>
+            <Text style={[S.tiny, { width: colW[3], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.batchNo || '-'}</Text>
+            <Text style={[S.tiny, { width: colW[4], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{formatExpiry(item.expiryDate, item.expiryMode)}</Text>
+            <Text style={[S.tiny, { width: colW[5], padding: 3, textAlign: 'right', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.quantity}</Text>
+            <Text style={[S.tiny, { width: colW[6], padding: 3, textAlign: 'right', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.unitPrice.toFixed(2)}</Text>
             <Text style={[S.bold, S.tiny, { width: colW[7], padding: 3, textAlign: 'right' }]}>{item.total.toFixed(2)}</Text>
           </View>
         ))}
-        <View style={[S.row, { backgroundColor: '#f4f4f5', borderTopWidth: 1, borderTopColor: '#a1a1aa' }]}>
-          <Text style={[S.bold, S.tiny, { width: '63%', padding: 4, textAlign: 'right', color: '#71717a' }]}>Total</Text>
-          <Text style={[S.bold, S.tiny, { width: '8%', padding: 4, textAlign: 'right' }]}>{invoice.items.reduce((s: number, i: any) => s + i.quantity, 0)}</Text>
-          <Text style={[S.tiny, { width: '14%', padding: 4 }]}></Text>
+        {/* Footer total row */}
+        <View style={[S.row, { backgroundColor: '#f4f4f5', borderTopWidth: bdrWidth, borderTopColor: bdrColor }]}>
+          <Text style={[S.bold, S.tiny, { width: '63%', padding: 4, textAlign: 'right', color: '#27272a', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>Total</Text>
+          <Text style={[S.bold, S.tiny, { width: '8%', padding: 4, textAlign: 'right', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{invoice.items.reduce((s: number, i: any) => s + i.quantity, 0)}</Text>
+          <Text style={[S.tiny, { width: '14%', padding: 4, borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}></Text>
           <Text style={[S.bold, S.tiny, { width: '15%', padding: 4, textAlign: 'right' }]}>{subtotal.toFixed(2)}</Text>
         </View>
       </View>
 
-      {/* Summary */}
-      <View style={[S.row, { borderWidth: 1, borderColor: '#a1a1aa', marginBottom: 12 }]}>
-        <View style={{ flex: 7, padding: 8, borderRightWidth: 1, borderRightColor: '#a1a1aa' }}>
-          <Text style={[S.bold, S.tiny, { textTransform: 'uppercase', color: '#71717a', marginBottom: 3 }]}>Total Amount in Words</Text>
+      {/* Summary block */}
+      <View style={[S.row, { borderWidth: bdrWidth, borderColor: bdrColor, marginBottom: 12 }]}>
+        <View style={{ flex: 7, padding: 8, borderRightWidth: bdrWidth, borderRightColor: bdrColor }}>
+          <Text style={[S.bold, S.tiny, { textTransform: 'uppercase', color: '#27272a', marginBottom: 3 }]}>Total Amount in Words</Text>
           <Text style={[S.bold, { fontSize: 10 }]}>{numberToWords(invoice.total)}</Text>
         </View>
         <View style={{ flex: 5 }}>
           {([['SUBTOTAL', subtotal.toFixed(2), false], [`DISC (${invoice.discountPercentage}%)`, `-${disc.toFixed(2)}`, true], ['ROUND OFF', invoice.roundOff.toFixed(2), false]] as [string, string, boolean][]).map(([label, val, red], i) => (
-            <View key={i} style={[S.row, { justifyContent: 'space-between', padding: 3, borderBottomWidth: 0.5, borderBottomColor: '#e4e4e7' }]}>
+            <View key={i} style={[S.row, { justifyContent: 'space-between', padding: 3, borderBottomWidth: 0.5, borderBottomColor: thinBdrColor }]}>
               <Text style={[S.bold, S.tiny, S.muted]}>{label}</Text>
               <Text style={[S.bold, S.tiny, red ? { color: '#ef4444' } : {}]}>{val}</Text>
             </View>
           ))}
-          <View style={[S.row, { justifyContent: 'space-between', padding: 4, borderBottomWidth: 0.5, borderBottomColor: '#e4e4e7', backgroundColor: `${theme}18` }]}>
+          <View style={[S.row, { justifyContent: 'space-between', padding: 4, borderBottomWidth: 0.5, borderBottomColor: thinBdrColor, backgroundColor: `${theme}18` }]}>
             <Text style={[S.bold, { fontSize: 12, color: theme }]}>TOTAL</Text>
             <Text style={[S.bold, { fontSize: 12, color: theme }]}>{invoice.total.toFixed(2)}</Text>
           </View>
@@ -282,12 +307,12 @@ const ModernPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
       <View style={{ marginBottom: 12 }}>
         <Text style={[S.tiny, S.muted, { textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }]}>Bill To</Text>
         <Text style={[S.bold, { fontSize: 12 }]}>
-          <Text style={{ fontFamily: 'Helvetica', color: '#71717a' }}>{invoice.clientLabel || 'Client'}: </Text>
+          <Text style={{ fontFamily: 'Helvetica', color: '#27272a' }}>{invoice.clientLabel || 'Client'}: </Text>
           {(invoice.clientName || '').toUpperCase()}
         </Text>
         {invoice.doctorName ? (
           <Text style={[S.bold, { fontSize: 11, marginTop: 2 }]}>
-            <Text style={{ fontFamily: 'Helvetica', color: '#71717a' }}>{doctorLabel}: </Text>
+            <Text style={{ fontFamily: 'Helvetica', color: '#27272a' }}>{doctorLabel}: </Text>
             {invoice.doctorName.toUpperCase()}
           </Text>
         ) : null}

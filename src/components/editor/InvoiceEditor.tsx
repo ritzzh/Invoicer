@@ -135,7 +135,7 @@ export const InvoiceEditor = ({
             {initialInvoice ? 'Edit Invoice' : 'Create Invoice'}
           </h2>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => onSave(invoice)} className="btn-primary flex items-center gap-2 flex-1 sm:flex-none justify-center">
+            <button onClick={() => onSave({ ...invoice, items: [...invoice.items].reverse() })} className="btn-primary flex items-center gap-2 flex-1 sm:flex-none justify-center">
               <Save size={18} /> Save
             </button>
 <button onClick={() => handlePrint()} className="btn-secondary flex items-center gap-2 flex-1 sm:flex-none justify-center">
@@ -375,7 +375,7 @@ export const InvoiceEditor = ({
       {/* Hidden print container for react-to-print */}
       <div className="hidden">
         <div ref={printRef} className="print-container">
-          <InvoiceTemplate invoice={invoice} settings={settings} />
+          <InvoiceTemplate invoice={{ ...invoice, items: [...invoice.items].reverse() }} settings={settings} />
         </div>
       </div>
     </div>
