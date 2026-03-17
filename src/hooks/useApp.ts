@@ -114,6 +114,7 @@ export const useApp = () => {
       userName:         d.userName         || '',
       signatureUrl:     d.signatureUrl     || '',
       companyTitleSize: d.companyTitleSize  || undefined,
+      defaultTerms:     d.defaultTerms      || '',
     }));
 
     safe('/api/products', (d) => setInventory(d.map((p: any) => ({
