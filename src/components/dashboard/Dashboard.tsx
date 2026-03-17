@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, TrendingUp, DollarSign, Package, Award, TrendingDown, BarChart2 } from 'lucide-react';
+import { FileText, TrendingUp, DollarSign, Package, Award, TrendingDown, BarChart2, ChevronRight } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar, Cell,
@@ -12,6 +12,7 @@ import { DashboardStats } from '../../hooks/useApp';
 interface DashboardProps {
   stats: DashboardStats | null;
   settings: Settings;
+  onViewInvoice: (id: number) => void;
 }
 
 // Fill in months that have no invoices so the chart always shows 6 bars
@@ -34,7 +35,7 @@ function buildChartData(raw: { month: string; revenue: number; count: number }[]
 
 const PALETTE = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe'];
 
-export const Dashboard = ({ stats, settings }: DashboardProps) => {
+export const Dashboard = ({ stats, settings, onViewInvoice }: DashboardProps) => {
   if (!stats) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[60vh]">
@@ -115,11 +116,15 @@ export const Dashboard = ({ stats, settings }: DashboardProps) => {
           {recentInvoices.length === 0 ? (
             <p className="text-sm text-zinc-400 text-center py-8">No invoices yet</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {recentInvoices.map(inv => (
-                <div key={inv.id} className="flex items-center justify-between py-2 border-b border-zinc-50 last:border-0">
+                <div
+                  key={inv.id}
+                  onClick={() => onViewInvoice(inv.id)}
+                  className="flex items-center justify-between py-2 px-2 -mx-2 rounded-xl border-b border-zinc-50 last:border-0 cursor-pointer hover:bg-zinc-50 active:bg-zinc-100 transition-colors group"
+                >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 bg-zinc-100 rounded-lg flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 bg-zinc-100 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-zinc-200 transition-colors">
                       <FileText size={13} className="text-zinc-500" />
                     </div>
                     <div className="min-w-0">
@@ -127,7 +132,10 @@ export const Dashboard = ({ stats, settings }: DashboardProps) => {
                       <p className="text-[10px] text-zinc-400">#{inv.invoiceNumber} · {inv.date}</p>
                     </div>
                   </div>
-                  <span className="text-sm font-black ml-2 shrink-0">{formatCurrency(inv.total, settings.currency)}</span>
+                  <div className="flex items-center gap-1 ml-2 shrink-0">
+                    <span className="text-sm font-black">{formatCurrency(inv.total, settings.currency)}</span>
+                    <ChevronRight size={14} className="text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+                  </div>
                 </div>
               ))}
             </div>

@@ -51,7 +51,10 @@ export default function App() {
 
   const onViewInvoice = async (id: number) => {
     const inv = await handleViewInvoice(id);
-    if (inv) setSelectedInvoice(inv);
+    if (inv) {
+      setSelectedInvoice(inv);
+      setActiveTab('invoices');
+    }
   };
 
   const onSaveInvoice = (invoice: Invoice) => {
@@ -180,7 +183,7 @@ export default function App() {
             </motion.div>
           ) : (
             <motion.div key={activeTab} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
-              {activeTab === 'dashboard' && <Dashboard stats={dashboardStats} settings={settings} />}
+              {activeTab === 'dashboard' && <Dashboard stats={dashboardStats} settings={settings} onViewInvoice={onViewInvoice} />}
               {activeTab === 'invoices' && (
                 <InvoiceList invoices={invoices} onNew={() => setIsCreating(true)} onView={onViewInvoice} onDelete={onDeleteInvoice} currency={settings.currency} settings={settings} />
               )}
