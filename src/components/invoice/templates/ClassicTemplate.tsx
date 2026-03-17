@@ -17,7 +17,7 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
     <div className="invoice-wrap px-3 py-3 bg-white font-serif border border-zinc-200 flex flex-col">
       <div>
         <div className="flex justify-end mb-0.5"><DLNumbers dlNumbers={dlNumbers} /></div>
-        <div className="text-center border-b-2 pb-2 mb-2" style={{ borderColor: themeColor }}>
+        <div className="text-center pb-2 mb-2" style={{ borderColor: themeColor }}>
           <CompanyName name={settings.companyName} themeColor={themeColor} titleSize={(invoice as any).companyTitleSize || settings.companyTitleSize} />
           <p className="mt-0.5 text-xs text-zinc-600">{settings.companyAddress}</p>
           <div className="flex justify-center gap-4 mt-0.5 text-[10px] text-zinc-500 flex-wrap">

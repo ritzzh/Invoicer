@@ -47,7 +47,7 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
         <div style={{ borderBottom: `2px solid ${themeColor}`, marginTop: '4px' }} />
       </div>
 
-      <div className="flex justify-between items-center border-y border-zinc-200 py-1 mb-2">
+      <div className="flex justify-between items-center border-b border-zinc-200 py-1 mb-2">
         <div className="flex gap-2">
           <span className="font-bold text-zinc-500 uppercase tracking-wider text-[10px]">Invoice No:</span>
           <span className="font-black text-[10px]">{invoice.invoiceNumber}</span>

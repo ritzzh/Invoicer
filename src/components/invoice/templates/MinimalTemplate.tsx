@@ -33,7 +33,7 @@ export const MinimalTemplate = ({ invoice, settings }: TemplateProps) => {
         </span>
       </div>
 
-      <div className="flex justify-between items-center border-y py-2 mb-4" style={{ borderColor: `${themeColor}20` }}>
+      <div className="flex justify-between items-center border-b pb-2 mb-4" style={{ borderColor: `${themeColor}20` }}>
         <div className="flex gap-3">
           <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Invoice</span>
           <span className="text-xs font-black">#{invoice.invoiceNumber}</span>
