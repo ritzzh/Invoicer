@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Shield, Users, FileText, TrendingUp, RefreshCw, ToggleLeft, ToggleRight, ChevronRight, X } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Shield, Users, FileText, TrendingUp, RefreshCw, ToggleLeft, ToggleRight, ChevronRight, X, Printer, Mail } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
+import { InvoiceTemplate } from '../invoice/InvoiceTemplate';
+import { useReactToPrint } from 'react-to-print';
+import { Settings } from '../../types';
 
 interface AdminUser {
   id: number;
@@ -51,7 +54,7 @@ interface AdminInvoiceDetail extends AdminInvoice {
 
 type Tab = 'users' | 'invoices';
 
-export const AdminPanel = () => {
+export const AdminPanel = ({ settings }: { settings: Settings }) => {
   const [activeTab, setActiveTab] = useState<Tab>('users');
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [allInvoices, setAllInvoices] = useState<AdminInvoice[]>([]);
@@ -60,6 +63,8 @@ export const AdminPanel = () => {
   const [viewingInvoice, setViewingInvoice] = useState<AdminInvoiceDetail | null>(null);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const printRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({ contentRef: printRef });
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -308,9 +313,10 @@ export const AdminPanel = () => {
 
       {/* Invoice View Modal */}
       {(viewingInvoice || invoiceLoading) && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-4">
-            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-zinc-100">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl my-4">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-zinc-100 sticky top-0 bg-white rounded-t-2xl z-10">
               <div>
                 <h3 className="font-bold text-base">
                   {invoiceLoading ? 'Loading…' : `Invoice #${viewingInvoice?.invoiceNumber}`}
@@ -321,75 +327,101 @@ export const AdminPanel = () => {
                   </p>
                 )}
               </div>
-              <button onClick={() => setViewingInvoice(null)} className="p-2 rounded-xl hover:bg-zinc-100 transition-colors">
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                {viewingInvoice && !invoiceLoading && (
+                  <>
+                    <button
+                      onClick={() => handlePrint()}
+                      className="btn-secondary flex items-center gap-1.5 text-xs px-3 py-2"
+                    >
+                      <Printer size={14} /> Print
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const inv = viewingInvoice;
+                        const to = inv.clientEmail;
+                        if (!to) { alert('No client email on this invoice.'); return; }
+                        const invoiceSettings = {
+                          ...settings,
+                          companyName: inv.companyName || settings.companyName,
+                          companyAddress: inv.companyAddress || settings.companyAddress,
+                          companyPhone: inv.companyPhone || settings.companyPhone,
+                          companyEmail: inv.userCompanyEmail || settings.companyEmail,
+                          logoUrl: inv.logoUrl || settings.logoUrl,
+                        };
+                        const subject = `Invoice ${inv.invoiceNumber} from ${invoiceSettings.companyName}`;
+                        const body = `Hi ${inv.clientName},\n\nPlease find your invoice ${inv.invoiceNumber} attached.\n\nThank you,\n${invoiceSettings.companyName}`;
+                        try {
+                          await fetch('/api/send-invoice-email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ to, subject, body, invoiceNumber: inv.invoiceNumber, invoiceData: inv, settingsData: invoiceSettings }),
+                          });
+                          alert('Email sent!');
+                        } catch { alert('Failed to send email.'); }
+                      }}
+                      className="btn-secondary flex items-center gap-1.5 text-xs px-3 py-2"
+                    >
+                      <Mail size={14} /> Mail
+                    </button>
+                  </>
+                )}
+                <button onClick={() => setViewingInvoice(null)} className="p-2 rounded-xl hover:bg-zinc-100 transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {invoiceLoading && <div className="p-12 text-center text-zinc-400">Loading invoice details…</div>}
 
-            {viewingInvoice && !invoiceLoading && (
-              <div className="p-4 sm:p-5 space-y-4">
-                {/* Client Info */}
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase mb-0.5">{viewingInvoice.clientLabel || 'Client'}</p>
-                    <p className="font-bold" style={{ fontSize: viewingInvoice.clientName.length > 25 ? '12px' : '14px', wordBreak: 'break-word' }}>{viewingInvoice.clientName}</p>
-                    {viewingInvoice.clientEmail && <p className="text-xs text-zinc-500 truncate">{viewingInvoice.clientEmail}</p>}
-                    {viewingInvoice.clientPhone && <p className="text-xs text-zinc-500">{viewingInvoice.clientPhone}</p>}
+            {viewingInvoice && !invoiceLoading && (() => {
+              // Build an Invoice + Settings object from admin detail
+              const inv = viewingInvoice;
+              const invoiceObj: any = {
+                id: inv.id,
+                invoiceNumber: inv.invoiceNumber,
+                clientName: inv.clientName,
+                clientEmail: inv.clientEmail,
+                clientPhone: inv.clientPhone,
+                clientAddress: inv.clientAddress,
+                clientLabel: inv.clientLabel || 'Patient',
+                doctorName: inv.doctorName,
+                doctorLabel: inv.doctorLabel || 'Doctor',
+                dlNumbers: inv.dlNumbers,
+                date: inv.date,
+                dueDate: inv.dueDate,
+                discountPercentage: inv.discountPercentage || 0,
+                roundOff: inv.roundOff || 0,
+                total: inv.total,
+                balanceDue: inv.balanceDue,
+                items: inv.items || [],
+                template: inv.template || 'medical',
+                themeColor: inv.themeColor || '#91b9ff',
+                terms: inv.terms || '',
+                showSignatory: !!inv.showSignatory,
+                useDigitalSignature: false,
+              };
+              const settingsObj: any = {
+                ...settings,
+                companyName: inv.companyName || settings.companyName,
+                companyAddress: inv.companyAddress || settings.companyAddress,
+                companyPhone: inv.companyPhone || settings.companyPhone,
+                companyEmail: inv.userCompanyEmail || settings.companyEmail,
+                logoUrl: inv.logoUrl || settings.logoUrl,
+                dlNumbers: inv.dlNumbers || settings.dlNumbers,
+              };
+              return (
+                <div className="p-4 sm:p-6">
+                  <div ref={printRef}>
+                    <InvoiceTemplate invoice={invoiceObj} settings={settingsObj} />
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase mb-0.5">Invoice Date</p>
-                    <p className="font-semibold text-sm">{viewingInvoice.date}</p>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase mt-2 mb-0.5">Template</p>
-                    <p className="text-xs capitalize text-zinc-600">{viewingInvoice.template}</p>
-                  </div>
+                  <p className="text-[10px] text-zinc-400 mt-3 text-center">
+                    View-only mode — this invoice belongs to {inv.companyName || inv.userEmail}
+                  </p>
                 </div>
-
-                {/* Items */}
-                {viewingInvoice.items?.length > 0 && (
-                  <div className="border border-zinc-100 rounded-xl overflow-hidden">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="bg-zinc-50 border-b border-zinc-100">
-                          <th className="px-3 py-2 text-left font-bold text-zinc-500 uppercase">Description</th>
-                          <th className="px-3 py-2 text-center font-bold text-zinc-500 uppercase hidden sm:table-cell">Qty</th>
-                          <th className="px-3 py-2 text-right font-bold text-zinc-500 uppercase">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-zinc-50">
-                        {viewingInvoice.items.map((item: any, i: number) => (
-                          <tr key={i}>
-                            <td className="px-3 py-1.5 text-zinc-700">{item.description}</td>
-                            <td className="px-3 py-1.5 text-center text-zinc-500 hidden sm:table-cell">{item.quantity} {item.unit}</td>
-                            <td className="px-3 py-1.5 text-right font-mono font-bold">{formatCurrency(item.total, 'INR')}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Totals */}
-                <div className="flex justify-end">
-                  <div className="space-y-1 text-sm w-48">
-                    {viewingInvoice.discountPercentage > 0 && (
-                      <div className="flex justify-between text-zinc-500">
-                        <span>Discount</span><span>{viewingInvoice.discountPercentage}%</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between font-bold text-base border-t border-zinc-100 pt-2 mt-2">
-                      <span>Total</span>
-                      <span className="font-mono">{formatCurrency(viewingInvoice.total, 'INR')}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-1 border-t border-zinc-100">
-                  <p className="text-[10px] text-zinc-400">View-only mode — this invoice belongs to {viewingInvoice.companyName || viewingInvoice.userEmail}</p>
-                </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       )}

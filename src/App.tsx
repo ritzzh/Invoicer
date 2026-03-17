@@ -188,7 +188,7 @@ export default function App() {
                 <InventoryManager products={inventory} onAdd={handleAddProduct} onUpdate={handleUpdateProduct} onDelete={handleDeleteProduct} currency={settings.currency} />
               )}
               {activeTab === 'settings' && <SettingsView settings={settings} onSave={handleSaveSettings} />}
-              {activeTab === 'admin' && user?.isAdmin && <AdminPanel />}
+              {activeTab === 'admin' && user?.isAdmin && <AdminPanel settings={settings} />}
             </motion.div>
           )}
         </AnimatePresence>

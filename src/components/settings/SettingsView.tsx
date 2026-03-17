@@ -165,6 +165,19 @@ export const SettingsView = ({ settings, onSave }: SettingsViewProps) => {
           </div>
         </div>
 
+        <div className="border-t border-zinc-100 pt-5 space-y-2">
+          <label className="text-xs font-bold text-zinc-400 uppercase">
+            Default Terms &amp; Conditions
+          </label>
+          <p className="text-xs text-zinc-400">These will be pre-filled on every new invoice. You can still edit them per invoice when creating.</p>
+          <textarea
+            className="input h-28"
+            placeholder={"1. This is an electronically generated document.\n2. All disputes are subject to seller city jurisdiction."}
+            value={formData.defaultTerms || ''}
+            onChange={e => setFormData({ ...formData, defaultTerms: e.target.value })}
+          />
+        </div>
+
         <button onClick={() => onSave(formData as any)} className="btn-primary w-full py-3">
           Save Settings
         </button>

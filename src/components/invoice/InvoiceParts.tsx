@@ -1,14 +1,16 @@
 import React from 'react';
 
-// Bold, wide INVOICE heading — no outer box, just typography
+// Bold, wide INVOICE heading with parallel colored lines above and below
 export const InvoiceTitle = ({ themeColor }: { themeColor: string }) => (
-  <div className="text-center my-3">
+  <div className="my-2" style={{ position: 'relative' }}>
+    <div style={{ borderTop: `2px solid ${themeColor}`, marginBottom: '4px' }} />
     <span
-      className="text-2xl font-black tracking-[0.5em] uppercase"
-      style={{ color: themeColor, letterSpacing: '0.45em', fontSize: 'clamp(1.4rem, 2vw, 1.5rem)' }}
+      className="font-black tracking-[0.5em] uppercase block text-center"
+      style={{ color: themeColor, letterSpacing: '0.45em', fontSize: 'clamp(1.6rem, 2.5vw, 1.8rem)', lineHeight: 1.1 }}
     >
       INVOICE
     </span>
+    <div style={{ borderBottom: `2px solid ${themeColor}`, marginTop: '4px' }} />
   </div>
 );
 
@@ -47,14 +49,16 @@ export const DLNumbers = ({ dlNumbers }: { dlNumbers?: string[] }) => {
 
   return (
     <div className="text-right">
-      {filled.map((dl, i) => (
-        <p
-          key={i}
-          className="text-[10px] text-zinc-700 font-bold leading-snug"
-        >
-          DL: {dl}
-        </p>
-      ))}
+      <div className="inline-flex gap-0">
+        <span className="text-[10px] text-zinc-700 font-bold leading-snug whitespace-nowrap">DL:&nbsp;</span>
+        <div className="flex flex-col items-start">
+          {filled.map((dl, i) => (
+            <span key={i} className="text-[10px] text-zinc-700 font-bold leading-snug whitespace-nowrap">
+              {dl}
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

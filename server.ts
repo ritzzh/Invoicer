@@ -131,6 +131,7 @@ const userMigrations = [
   { name: 'emailAppPassword', sql: "ALTER TABLE users ADD COLUMN emailAppPassword TEXT" },
   { name: 'signatureUrl', sql: "ALTER TABLE users ADD COLUMN signatureUrl TEXT" },
   { name: 'companyTitleSize', sql: "ALTER TABLE users ADD COLUMN companyTitleSize INTEGER DEFAULT 0" },
+  { name: 'defaultTerms', sql: "ALTER TABLE users ADD COLUMN defaultTerms TEXT" },
 ];
 
 for (const m of userMigrations) {
@@ -312,11 +313,12 @@ async function startServer() {
     safeUser.emailAppPassword = undefined;
     safeUser.signatureUrl = user.signatureUrl || '';
     safeUser.companyTitleSize = user.companyTitleSize || 0;
+    safeUser.defaultTerms = user.defaultTerms || '';
     res.json(safeUser);
   });
 
   app.post("/api/settings", authenticate, (req: any, res) => {
-    const { companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency, dlNumbers, userName, emailAppPassword, signatureUrl, companyTitleSize } = req.body;
+    const { companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency, dlNumbers, userName, emailAppPassword, signatureUrl, companyTitleSize, defaultTerms } = req.body;
     // Only update emailAppPassword if a non-empty value is provided
     if (emailAppPassword && emailAppPassword.trim()) {
       db.prepare(`UPDATE users SET emailAppPassword = ? WHERE id = ?`).run(emailAppPassword.trim(), req.userId);
@@ -325,11 +327,12 @@ async function startServer() {
       UPDATE users SET 
         companyName = ?, companyAddress = ?, companyEmail = ?, 
         companyPhone = ?, companyWebsite = ?, logoUrl = ?, currency = ?,
-        dlNumbers = ?, userName = ?, signatureUrl = ?, companyTitleSize = ?
+        dlNumbers = ?, userName = ?, signatureUrl = ?, companyTitleSize = ?,
+        defaultTerms = ?
       WHERE id = ?
     `).run(companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency,
       dlNumbers ? JSON.stringify(dlNumbers) : null, userName || null,
-      signatureUrl || null, companyTitleSize || 0, req.userId);
+      signatureUrl || null, companyTitleSize || 0, defaultTerms || null, req.userId);
     res.json({ success: true });
   });
 

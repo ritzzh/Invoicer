@@ -10,6 +10,7 @@ export interface Settings {
   userName: string;         // user's own name (autofills doctor name)
   signatureUrl: string;     // base64 or URL of authorised signature image
   companyTitleSize?: number; // font size override for company title on invoices
+  defaultTerms?: string;     // default terms and conditions for all invoices
 }
 
 export interface Product {

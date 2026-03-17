@@ -134,16 +134,16 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
           <div className="flex justify-end items-end">
             <div className="w-52 text-center">
               <p className="text-[10px] font-semibold mb-3">For, {settings.companyName}</p>
-              <div className="flex justify-center items-center mb-1 h-14">
-                {(invoice as any).useDigitalSignature && settings.signatureUrl && (
-                  <img
-                    src={settings.signatureUrl}
-                    alt="Authorised Signature"
-                    className="max-h-14 object-contain"
-                    style={{ maxWidth: 160 }}
-                  />
-                )}
-              </div>
+              {(invoice as any).useDigitalSignature && settings.signatureUrl ? (
+                <img
+                  src={settings.signatureUrl}
+                  alt="Authorised Signature"
+                  className="mx-auto mb-1 max-h-14 object-contain"
+                  style={{ maxWidth: 160 }}
+                />
+              ) : (
+                <></>
+              )}
               <div className="border-t border-zinc-900 pt-1">
                 <p className="font-bold uppercase text-[9px] tracking-widest">Authorised Signatory</p>
               </div>

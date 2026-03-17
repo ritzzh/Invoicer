@@ -1,7 +1,7 @@
 import React from 'react';
 import { Invoice, Settings } from '../../../types';
 import { formatCurrency, numberToWords } from '../../../lib/utils';
-import { InvoiceTitle, DLNumbers, CompanyName } from '../InvoiceParts';
+import { DLNumbers, CompanyName } from '../InvoiceParts';
 import { formatExpiry } from '../../shared/ExpiryInput';
 
 interface TemplateProps { invoice: Invoice; settings: Settings; }
@@ -13,8 +13,11 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
   const dlNumbers = (invoice as any).dlNumbers || settings.dlNumbers;
   const doctorLabel = (invoice as any).doctorLabel || 'Doctor';
 
+  const bdr = '1.5px solid #52525b';
+  const thinBdr = '1px solid #a1a1aa';
+
   return (
-    <div className="invoice-wrap px-3 py-3 bg-white font-sans text-[11px] border border-zinc-300 flex flex-col">
+    <div className="invoice-wrap bg-white font-sans text-[11px] flex flex-col" style={{ border: '2.5px solid #27272a', padding: '10px' }}>
       <div className="text-center space-y-0.5 mb-1">
         <div className="flex justify-end mb-0.5">
           <DLNumbers dlNumbers={dlNumbers} />
@@ -28,13 +31,20 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
       </div>
 
       <div className="relative mb-3">
-        <div className="text-center">
-          <InvoiceTitle themeColor={themeColor} />
+        <div style={{ borderTop: `2px solid ${themeColor}`, marginBottom: '4px' }} />
+        <div className="flex items-center justify-between">
+          <div style={{ width: '150px' }} />
+          <span
+            className="font-black tracking-[0.5em] uppercase"
+            style={{ color: themeColor, letterSpacing: '0.45em', fontSize: 'clamp(1.6rem, 2.5vw, 1.8rem)', lineHeight: 1.1 }}
+          >
+            INVOICE
+          </span>
+          <span style={{ width: '150px', textAlign: 'right', fontSize: '8px', fontWeight: 600, letterSpacing: '0.05em', color: '#71717a', textTransform: 'uppercase' }}>
+            ORIGINAL FOR RECIPIENT
+          </span>
         </div>
-
-        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[8px] font-semibold tracking-wider text-zinc-500 uppercase">
-          ORIGINAL FOR RECIPIENT
-        </span>
+        <div style={{ borderBottom: `2px solid ${themeColor}`, marginTop: '4px' }} />
       </div>
 
       <div className="flex justify-between items-center border-y border-zinc-200 py-1 mb-2">
@@ -44,7 +54,7 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
         </div>
         <div className="flex gap-2">
           <span className="font-bold text-zinc-500 uppercase tracking-wider text-[10px]">Date:</span>
-          <span className="font-black text-[10px]">{invoice.date}</span>
+          <span className="font-black text-[10px]">{invoice.date ? invoice.date.split('-').reverse().join('-') : ''}</span>
         </div>
       </div>
 
@@ -62,68 +72,68 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
         {invoice.clientPhone && <p className="text-[10px] text-zinc-500">✆ {invoice.clientPhone}</p>}
       </div>
 
-      <div className="overflow-x-auto -mx-3 px-3 mb-2">
-        <table className="border-collapse border border-zinc-400" style={{ minWidth: '500px', width: '100%' }}>
+      <div className="overflow-x-auto -mx-[10px] px-[10px] mb-2">
+        <table style={{ borderCollapse: 'collapse', border: bdr, minWidth: '500px', width: '100%' }}>
           <thead>
-            <tr className="border-b border-zinc-400 bg-zinc-50">
-              <th className="border-r border-zinc-400 py-[2px] px-1 w-5 text-center whitespace-nowrap">Sr.</th>
-              <th className="border-r border-zinc-400 py-[2px] px-1 text-left">Product</th>
-              <th className="border-r border-zinc-400 py-[2px] px-1 w-10 text-center whitespace-nowrap">Unit</th>
-              <th className="border-r border-zinc-400 py-[2px] px-1 w-14 text-center whitespace-nowrap">Batch</th>
-              <th className="border-r border-zinc-400 py-[2px] px-1 w-12 text-center whitespace-nowrap">Expiry</th>
-              <th className="border-r border-zinc-400 py-[2px] px-1 w-8 text-center whitespace-nowrap">Qty</th>
-              <th className="border-r border-zinc-400 py-[2px] px-1 w-16 text-right whitespace-nowrap">MRP</th>
-              <th className="py-[2px] px-1 w-16 text-right whitespace-nowrap">Amount</th>
+            <tr style={{ borderBottom: bdr, backgroundColor: '#f9f9f9' }}>
+              <th style={{ border: bdr, padding: '2px 4px', width: '20px', textAlign: 'center', whiteSpace: 'nowrap' }}>Sr.</th>
+              <th style={{ border: bdr, padding: '2px 4px', textAlign: 'left' }}>Product Name</th>
+              <th style={{ border: bdr, padding: '2px 4px', width: '40px', textAlign: 'center', whiteSpace: 'nowrap' }}>Pack</th>
+              <th style={{ border: bdr, padding: '2px 4px', width: '56px', textAlign: 'center', whiteSpace: 'nowrap' }}>Batch</th>
+              <th style={{ border: bdr, padding: '2px 4px', width: '48px', textAlign: 'center', whiteSpace: 'nowrap' }}>Expiry</th>
+              <th style={{ border: bdr, padding: '2px 4px', width: '32px', textAlign: 'center', whiteSpace: 'nowrap' }}>Qty</th>
+              <th style={{ border: bdr, padding: '2px 4px', width: '64px', textAlign: 'right', whiteSpace: 'nowrap' }}>MRP</th>
+              <th style={{ border: bdr, padding: '2px 4px', width: '64px', textAlign: 'right', whiteSpace: 'nowrap' }}>Amount</th>
             </tr>
           </thead>
           <tbody>
             {invoice.items.map((item, i) => (
-              <tr key={i} className="border-b border-zinc-100">
-                <td className="border-r border-zinc-400 py-[1px] px-1 text-center">{i + 1}</td>
-                <td className="border-r border-zinc-400 py-[1px] px-1">{item.description}</td>
-                <td className="border-r border-zinc-400 py-[1px] px-1 text-center text-[9px] whitespace-nowrap">{item.unit || '-'}</td>
-                <td className="border-r border-zinc-400 py-[1px] px-1 text-center text-[9px] whitespace-nowrap">{(item as any).batchNo || '-'}</td>
-                <td className="border-r border-zinc-400 py-[1px] px-1 text-center text-[9px] whitespace-nowrap">{formatExpiry((item as any).expiryDate, (item as any).expiryMode)}</td>
-                <td className="border-r border-zinc-400 py-[1px] px-1 text-center whitespace-nowrap">{item.quantity}</td>
-                <td className="border-r border-zinc-400 py-[1px] px-1 text-right whitespace-nowrap">{item.unitPrice.toFixed(2)}</td>
-                <td className="py-[1px] px-1 text-right font-bold whitespace-nowrap">{item.total.toFixed(2)}</td>
+              <tr key={i} style={{ borderBottom: thinBdr }}>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center' }}>{i + 1}</td>
+                <td style={{ border: bdr, padding: '1px 4px' }}>{item.description}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', fontSize: '9px', whiteSpace: 'nowrap' }}>{item.unit || '-'}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', fontSize: '9px', whiteSpace: 'nowrap' }}>{(item as any).batchNo || '-'}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', fontSize: '9px', whiteSpace: 'nowrap' }}>{formatExpiry((item as any).expiryDate, (item as any).expiryMode)}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', whiteSpace: 'nowrap' }}>{item.quantity}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>{item.unitPrice.toFixed(2)}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'right', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{item.total.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr className="bg-zinc-50 font-bold border-t border-zinc-400">
-              <td colSpan={5} className="border-r border-zinc-400 py-[2px] px-1 text-right text-zinc-500 text-[10px]">Total</td>
-              <td className="border-r border-zinc-400 py-[2px] px-1 text-center whitespace-nowrap">{invoice.items.reduce((s, i) => s + i.quantity, 0)}</td>
-              <td className="border-r border-zinc-400 py-[2px] px-1"></td>
-              <td className="py-[2px] px-1 text-right whitespace-nowrap">{subtotal.toFixed(2)}</td>
+            <tr style={{ backgroundColor: '#f9f9f9', fontWeight: 'bold', borderTop: bdr }}>
+              <td colSpan={5} style={{ border: bdr, padding: '2px 4px', textAlign: 'right', color: '#71717a', fontSize: '10px' }}>Total</td>
+              <td style={{ border: bdr, padding: '2px 4px', textAlign: 'center', whiteSpace: 'nowrap' }}>{invoice.items.reduce((s, i) => s + i.quantity, 0)}</td>
+              <td style={{ border: bdr, padding: '2px 4px' }}></td>
+              <td style={{ border: bdr, padding: '2px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>{subtotal.toFixed(2)}</td>
             </tr>
           </tfoot>
         </table>
       </div>
 
-      <div className="grid grid-cols-12 border border-zinc-400">
-        <div className="col-span-7 px-2 py-1.5 border-r border-zinc-400">
+      <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', border: bdr }}>
+        <div style={{ padding: '6px 8px', borderRight: bdr }}>
           <p className="font-bold uppercase text-[9px] text-zinc-500">Total Invoice Amount in Words</p>
           <p className="font-black text-xs italic">{numberToWords(invoice.total)}</p>
         </div>
-        <div className="col-span-5 divide-y divide-zinc-200">
-          <div className="flex justify-between px-2 py-0.5">
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr }}>
             <span className="font-bold text-zinc-500 uppercase text-[9px]">Subtotal</span>
             <span className="font-bold">{subtotal.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between px-2 py-0.5">
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr }}>
             <span className="font-bold text-zinc-500 uppercase text-[9px]">Disc ({invoice.discountPercentage}%)</span>
             <span className="font-bold text-red-500">-{discountAmount.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between px-2 py-0.5">
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr }}>
             <span className="font-bold text-zinc-500 uppercase text-[9px]">Round Off</span>
             <span className="font-bold">{invoice.roundOff.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between px-2 py-0.5 font-black text-sm" style={{ backgroundColor: `${themeColor}12`, color: themeColor }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr, backgroundColor: `${themeColor}12`, color: themeColor }} className="font-black text-sm">
             <span>Total</span>
             <span>{invoice.total.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between px-2 py-0.5">
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px' }}>
             <span className="font-bold text-zinc-500 uppercase text-[9px]">Balance Due</span>
             <span className="font-bold">{invoice.balanceDue?.toFixed(2) || '0.00'}</span>
           </div>
@@ -140,17 +150,17 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
         {invoice.showSignatory && (
           <div className="flex justify-end items-end">
             <div className="w-52 text-center">
-              <p className="text-[10px] font-semibold mb-3">For, {settings.companyName}</p>
-              <div className="flex justify-center items-center mb-1 h-14">
-                {(invoice as any).useDigitalSignature && settings.signatureUrl && (
-                  <img
-                    src={settings.signatureUrl}
-                    alt="Authorised Signature"
-                    className="max-h-14 object-contain"
-                    style={{ maxWidth: 160 }}
-                  />
-                )}
-              </div>
+              <p className="text-[10px] font-semibold mb-1">For, {settings.companyName}</p>
+              {(invoice as any).useDigitalSignature && settings.signatureUrl ? (
+                <img
+                  src={settings.signatureUrl}
+                  alt="Authorised Signature"
+                  className="mx-auto mb-1 max-h-14 object-contain"
+                  style={{ maxWidth: 160 }}
+                />
+              ) : (
+                <div style={{ height: '48px' }} />
+              )}
               <div className="border-t border-zinc-900 pt-1">
                 <p className="font-bold uppercase text-[9px] tracking-widest">Authorised Signatory</p>
               </div>
