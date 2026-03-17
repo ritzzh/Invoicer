@@ -29,7 +29,7 @@ export const InvoiceEditor = ({
       clientEmail: '',
       clientPhone: '',
       clientAddress: '',
-      clientLabel: 'Patient',
+      clientLabel: 'Patient Name',
       doctorName: settings.userName || '',
       doctorLabel: 'Doctor',
       dlNumbers: settings.dlNumbers || ['', '', ''],
