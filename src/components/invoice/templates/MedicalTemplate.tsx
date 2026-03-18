@@ -17,7 +17,7 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
   const thinBdr = '1px solid #a1a1aa';
 
   return (
-    <div className="invoice-wrap bg-white font-sans text-[11px] flex flex-col" style={{ border: '2.5px solid #27272a', padding: '10px' }}>
+    <div className="invoice-wrap bg-white font-sans text-[11px] flex flex-col" style={{ padding: '10px' }}>
       <div className="text-center space-y-0.5 mb-1">
         <div className="flex justify-end mb-0.5">
           <DLNumbers dlNumbers={dlNumbers} />

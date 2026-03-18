@@ -189,7 +189,7 @@ const MedicalPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
   const thinBdrColor = '#a1a1aa';
 
   return (
-    <Page size="A4" style={[S.page, { borderWidth: 2.5, borderColor: '#27272a' }]}>
+    <Page size="A4" style={S.page}>
       <DLRow dlNumbers={dlNumbers} />
       <CompanyHeader settings={settings} theme={theme} invoiceTitleSize={invoice.companyTitleSize} />
 

@@ -14,7 +14,7 @@ export const ModernTemplate = ({ invoice, settings }: TemplateProps) => {
   const doctorLabel = (invoice as any).doctorLabel || 'Doctor';
 
   return (
-    <div className="invoice-wrap px-3 py-3 bg-white font-sans border border-zinc-100 flex flex-col">
+    <div className="invoice-wrap px-3 py-3 bg-white font-sans flex flex-col">
       <div>
         <div className="flex justify-end mb-0.5"><DLNumbers dlNumbers={dlNumbers} /></div>
         <div className="text-center mb-2">

@@ -14,7 +14,7 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
   const doctorLabel = (invoice as any).doctorLabel || 'Doctor';
 
   return (
-    <div className="invoice-wrap px-3 py-3 bg-white font-serif border border-zinc-200 flex flex-col">
+    <div className="invoice-wrap px-3 py-3 bg-white font-serif flex flex-col">
       <div>
         <div className="flex justify-end mb-0.5"><DLNumbers dlNumbers={dlNumbers} /></div>
         <div className="text-center border-b-2 pb-2 mb-2" style={{ borderColor: themeColor }}>
