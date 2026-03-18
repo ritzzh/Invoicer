@@ -339,8 +339,9 @@ export const AdminPanel = ({ settings }: { settings: Settings }) => {
                     <button
                       onClick={async () => {
                         const inv = viewingInvoice;
-                        const to = inv.clientEmail;
-                        if (!to) { alert('No client email on this invoice.'); return; }
+                        const defaultTo = '';
+                        const to = window.prompt('Send invoice to email:', defaultTo);
+                        if (!to || !to.trim()) return;
                         const invoiceSettings = {
                           ...settings,
                           companyName: inv.companyName || settings.companyName,
@@ -350,13 +351,13 @@ export const AdminPanel = ({ settings }: { settings: Settings }) => {
                           logoUrl: inv.logoUrl || settings.logoUrl,
                         };
                         const subject = `Invoice ${inv.invoiceNumber} from ${invoiceSettings.companyName}`;
-                        const body = `Hi ${inv.clientName},\n\nPlease find your invoice ${inv.invoiceNumber} attached.\n\nThank you,\n${invoiceSettings.companyName}`;
+                        const body = `Hi,\n\nPlease find your invoice ${inv.invoiceNumber} attached.\n\nThank you,\n${invoiceSettings.companyName}`;
                         try {
                           await fetch('/api/send-invoice-email', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             credentials: 'include',
-                            body: JSON.stringify({ to, subject, body, invoiceNumber: inv.invoiceNumber, invoiceData: inv, settingsData: invoiceSettings }),
+                            body: JSON.stringify({ to: to.trim(), subject, body, invoiceNumber: inv.invoiceNumber, invoiceData: inv, settingsData: invoiceSettings }),
                           });
                           alert('Email sent!');
                         } catch { alert('Failed to send email.'); }
