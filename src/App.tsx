@@ -129,10 +129,10 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen print-root">
       <Sidebar activeTab={activeTab} setActiveTab={navigateToTab} onLogout={handleLogout} isAdmin={!!user?.isAdmin} />
 
-      <main className="flex-1 bg-zinc-50 overflow-auto pt-14 md:pt-0">
+      <main className="flex-1 bg-zinc-50 overflow-auto pt-14 md:pt-0 print-main">
         <AnimatePresence mode="wait">
           {isCreating || editingInvoice ? (
             <motion.div key="editor" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
@@ -150,8 +150,8 @@ export default function App() {
               />
             </motion.div>
           ) : selectedInvoice ? (
-            <motion.div key="viewer" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="p-4 sm:p-8">
-              <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+            <motion.div key="viewer" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="p-4 sm:p-8 print-viewer-outer">
+              <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 print-viewer-inner">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 no-print">
                   <button onClick={() => setSelectedInvoice(null)} className="text-zinc-500 hover:text-zinc-900 flex items-center gap-1 text-sm font-medium self-start">
                     <ChevronRight size={16} className="rotate-180" /> Back to Invoices
@@ -176,7 +176,7 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-                <div className="bg-white shadow-xl rounded-sm">
+                <div className="bg-white shadow-xl rounded-sm print-container">
                   <InvoiceTemplate invoice={selectedInvoice} settings={settings} />
                 </div>
               </div>

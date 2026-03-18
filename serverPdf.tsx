@@ -194,12 +194,11 @@ const MedicalPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
       <CompanyHeader settings={settings} theme={theme} invoiceTitleSize={invoice.companyTitleSize} />
 
       {/* INVOICE title row with full box border and ORIGINAL FOR RECIPIENT at right */}
-      <View style={{ marginVertical: 4, borderWidth: 2, borderColor: theme, flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingHorizontal: 8 }}>
+      <View style={{ marginVertical: 4, borderWidth: 2, borderColor: theme, flexDirection: 'row', alignItems: 'center', paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#f5f5f5' }}>
         <View style={{ flex: 1 }} />
         <Text style={[S.bold, { fontSize: 20, color: theme, letterSpacing: 4, textTransform: 'uppercase', textAlign: 'center' }]}>INVOICE</Text>
         <View style={{ flex: 1, alignItems: 'flex-end' }}>
-          <Text style={[S.tiny, S.muted, { textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'right' }]}>ORIGINAL FOR</Text>
-          <Text style={[S.tiny, S.muted, { textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'right' }]}>RECIPIENT</Text>
+          <Text style={[{ fontSize: 7.5 }, S.muted, { textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'right' }]}>ORIGINAL FOR RECIPIENT</Text>
         </View>
       </View>
 
