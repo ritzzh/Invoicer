@@ -95,7 +95,7 @@ export const MinimalTemplate = ({ invoice, settings }: TemplateProps) => {
         </div>
         <div className="col-span-5 space-y-1.5">
           <div className="flex justify-between text-[10px]">
-            <span className="text-zinc-400 uppercase tracking-widest">Subtotal</span>
+            <span className="text-zinc-400 uppercase tracking-widest">Sub Total</span>
             <span className="font-bold">{formatCurrency(subtotal, settings.currency)}</span>
           </div>
           {invoice.discountPercentage > 0 && (
@@ -104,13 +104,9 @@ export const MinimalTemplate = ({ invoice, settings }: TemplateProps) => {
               <span className="font-bold">-{formatCurrency(discountAmount, settings.currency)}</span>
             </div>
           )}
-          <div className="flex justify-between font-black text-lg pt-2 border-t" style={{ borderColor: `${themeColor}20`, color: themeColor }}>
-            <span>Total</span>
+          <div className="flex justify-between uppercase font-black text-lg pt-2 border-t" style={{ borderColor: `${themeColor}20`, color: themeColor }}>
+            <span>Grand Total</span>
             <span>{formatCurrency(invoice.total, settings.currency)}</span>
-          </div>
-          <div className="flex justify-between text-[10px] font-bold text-zinc-900 pt-1">
-            <span className="uppercase tracking-widest">Balance Due</span>
-            <span>{formatCurrency(invoice.balanceDue || 0, settings.currency)}</span>
           </div>
         </div>
       </div>

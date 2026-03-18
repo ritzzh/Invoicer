@@ -101,7 +101,7 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
         </div>
         <div className="col-span-5 space-y-1.5">
           <div className="flex justify-between text-xs">
-            <span className="text-zinc-500">Subtotal</span>
+            <span className="text-zinc-500">Sub Total</span>
             <span className="font-bold">{formatCurrency(subtotal, settings.currency)}</span>
           </div>
           <div className="flex justify-between text-xs text-red-600">
@@ -112,13 +112,9 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
             <span>Round Off</span>
             <span>{formatCurrency(invoice.roundOff, settings.currency)}</span>
           </div>
-          <div className="flex justify-between text-lg font-bold border-t-2 pt-2" style={{ borderColor: themeColor, color: themeColor }}>
-            <span>Total</span>
+          <div className="flex uppercase justify-between text-lg font-bold border-t-2 pt-2" style={{ borderColor: themeColor, color: themeColor }}>
+            <span>Grand Total</span>
             <span>{formatCurrency(invoice.total, settings.currency)}</span>
-          </div>
-          <div className="flex justify-between text-xs font-bold text-zinc-900 pt-1">
-            <span>Balance Due</span>
-            <span>{formatCurrency(invoice.balanceDue || 0, settings.currency)}</span>
           </div>
         </div>
       </div>

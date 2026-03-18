@@ -101,7 +101,7 @@ export const ModernTemplate = ({ invoice, settings }: TemplateProps) => {
         </div>
         <div className="col-span-5 bg-zinc-50 px-4 py-3 rounded-2xl space-y-2">
           <div className="flex justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-            <span>Subtotal</span>
+            <span>Sub Total</span>
             <span className="text-zinc-900">{formatCurrency(subtotal, settings.currency)}</span>
           </div>
           {invoice.discountPercentage > 0 && (
@@ -110,13 +110,9 @@ export const ModernTemplate = ({ invoice, settings }: TemplateProps) => {
               <span>-{formatCurrency(discountAmount, settings.currency)}</span>
             </div>
           )}
-          <div className="flex justify-between text-xl font-black pt-3 border-t border-zinc-200" style={{ color: themeColor }}>
-            <span>Total</span>
+          <div className="flex uppercase justify-between text-xl font-black pt-3 border-t border-zinc-200" style={{ color: themeColor }}>
+            <span>Grand Total</span>
             <span>{formatCurrency(invoice.total, settings.currency)}</span>
-          </div>
-          <div className="flex justify-between text-[10px] font-bold text-zinc-900 pt-1 uppercase tracking-widest">
-            <span>Balance Due</span>
-            <span>{formatCurrency(invoice.balanceDue || 0, settings.currency)}</span>
           </div>
         </div>
       </div>

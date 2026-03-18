@@ -102,8 +102,8 @@ const CompanyHeader = ({ settings, theme, invoiceTitleSize }: { settings: any; t
       ? <Text style={[S.small, S.bold, S.muted, { marginTop: 2, textAlign: 'center' }]}>{settings.companyAddress}</Text>
       : null}
     <View style={[S.row, { marginTop: 3, gap: 14, justifyContent: 'center' }]}>
-      {settings.companyPhone ? <Text style={[{ fontSize: 9.5 }, S.bold, S.muted]}>{settings.companyPhone}</Text> : null}
-      {settings.companyEmail ? <Text style={[{ fontSize: 9.5 }, S.bold, S.muted]}>{settings.companyEmail}</Text> : null}
+      {settings.companyPhone ? <Text style={[{ fontSize: 9.5 }, S.bold, S.muted]}>✆ {settings.companyPhone}</Text> : null}
+      {settings.companyEmail ? <Text style={[{ fontSize: 9.5 }, S.bold, S.muted]}>✉ {settings.companyEmail}</Text> : null}
     </View>
   </View>
 );
@@ -115,7 +115,7 @@ const TotalsBlock = ({ invoice, currency, theme }: { invoice: any; currency: str
     <View style={{ alignItems: 'flex-end', marginTop: 8 }}>
       <View style={{ width: 200 }}>
         <View style={[S.row, { justifyContent: 'space-between', paddingVertical: 2 }]}>
-          <Text style={[S.small, S.muted]}>Subtotal</Text>
+          <Text style={[S.small, S.muted]}>Sub Total</Text>
           <Text style={S.small}>{subtotal.toFixed(2)}</Text>
         </View>
         {invoice.discountPercentage > 0 && (
@@ -129,15 +129,9 @@ const TotalsBlock = ({ invoice, currency, theme }: { invoice: any; currency: str
           <Text style={S.small}>{invoice.roundOff.toFixed(2)}</Text>
         </View>
         <View style={[S.row, { justifyContent: 'space-between', paddingVertical: 4, borderTopWidth: 1.5, borderTopColor: '#18181b', marginTop: 2 }]}>
-          <Text style={[S.bold, { fontSize: 13 }]}>Total</Text>
+          <Text style={[S.bold, { fontSize: 13 }]}> Grand Total</Text>
           <Text style={[S.bold, { fontSize: 13, color: theme }]}>{fmt(invoice.total, currency)}</Text>
         </View>
-        {(invoice.balanceDue ?? 0) > 0 && (
-          <View style={[S.row, { justifyContent: 'space-between', paddingVertical: 2 }]}>
-            <Text style={[S.small, S.muted]}>Balance Due</Text>
-            <Text style={S.small}>{invoice.balanceDue.toFixed(2)}</Text>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -265,19 +259,15 @@ const MedicalPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
           <Text style={[S.bold, { fontSize: 10 }]}>{numberToWords(invoice.total)}</Text>
         </View>
         <View style={{ flex: 5 }}>
-          {([['SUBTOTAL', subtotal.toFixed(2), false], [`DISC (${invoice.discountPercentage}%)`, `-${disc.toFixed(2)}`, true], ['ROUND OFF', invoice.roundOff.toFixed(2), false]] as [string, string, boolean][]).map(([label, val, red], i) => (
+          {([['SUB TOTAL', subtotal.toFixed(2), false], [`DISC (${invoice.discountPercentage}%)`, `-${disc.toFixed(2)}`, true], ['ROUND OFF', invoice.roundOff.toFixed(2), false]] as [string, string, boolean][]).map(([label, val, red], i) => (
             <View key={i} style={[S.row, { justifyContent: 'space-between', padding: 3, borderBottomWidth: 0.5, borderBottomColor: thinBdrColor }]}>
               <Text style={[S.bold, S.tiny, S.muted]}>{label}</Text>
               <Text style={[S.bold, S.tiny, red ? { color: '#ef4444' } : {}]}>{val}</Text>
             </View>
           ))}
           <View style={[S.row, { justifyContent: 'space-between', padding: 4, borderBottomWidth: 0.5, borderBottomColor: thinBdrColor, backgroundColor: `${theme}18` }]}>
-            <Text style={[S.bold, { fontSize: 12, color: theme }]}>TOTAL</Text>
+            <Text style={[S.bold, { fontSize: 12, color: theme }]}>GRAND TOTAL</Text>
             <Text style={[S.bold, { fontSize: 12, color: theme }]}>{invoice.total.toFixed(2)}</Text>
-          </View>
-          <View style={[S.row, { justifyContent: 'space-between', padding: 3 }]}>
-            <Text style={[S.bold, S.tiny, S.muted]}>BALANCE DUE</Text>
-            <Text style={[S.bold, S.tiny]}>{(invoice.balanceDue ?? 0).toFixed(2)}</Text>
           </View>
         </View>
       </View>

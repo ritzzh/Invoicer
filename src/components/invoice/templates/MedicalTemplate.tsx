@@ -114,7 +114,7 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
         </div>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr }}>
-            <span className="font-bold text-zinc-800 uppercase text-[9px]">Subtotal</span>
+            <span className="font-bold text-zinc-800 uppercase text-[9px]">Sub Total</span>
             <span className="font-bold">{subtotal.toFixed(2)}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr }}>
@@ -125,13 +125,9 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
             <span className="font-bold text-zinc-800 uppercase text-[9px]">Round Off</span>
             <span className="font-bold">{invoice.roundOff.toFixed(2)}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr, backgroundColor: `${themeColor}12`, color: themeColor }} className="font-black text-sm">
-            <span>Total</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr, backgroundColor: `${themeColor}12`, color: themeColor }} className="font-black uppercase text-sm">
+            <span>Grand Total</span>
             <span>{invoice.total.toFixed(2)}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px' }}>
-            <span className="font-bold text-zinc-800 uppercase text-[9px]">Balance Due</span>
-            <span className="font-bold">{invoice.balanceDue?.toFixed(2) || '0.00'}</span>
           </div>
         </div>
       </div>
