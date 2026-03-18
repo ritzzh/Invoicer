@@ -23,8 +23,8 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
           <DLNumbers dlNumbers={dlNumbers} />
         </div>
         <CompanyName name={settings.companyName} themeColor={themeColor} titleSize={(invoice as any).companyTitleSize || settings.companyTitleSize} />
-        <p className="font-bold text-zinc-800 text-[11px]">{settings.companyAddress}</p>
-        <div className="flex justify-center gap-4 text-[11px] text-zinc-800 font-semibold flex-wrap">
+        <p className="font-bold text-black text-[11px]">{settings.companyAddress}</p>
+        <div className="flex justify-center gap-4 text-[11px] text-black font-semibold flex-wrap">
           {settings.companyPhone && <p>✆ {settings.companyPhone}</p>}
           {settings.companyEmail && <p>✉ {settings.companyEmail}</p>}
         </div>
@@ -45,27 +45,27 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
 
       <div className="flex justify-between items-center py-1 mb-2" style={{ border: bdr, padding: '4px 8px' }}>
         <div className="flex gap-2">
-          <span className="font-bold text-zinc-800 uppercase tracking-wider text-[10px]">Invoice No:</span>
+          <span className="font-bold text-black uppercase tracking-wider text-[10px]">Invoice No:</span>
           <span className="font-black text-[10px]">{invoice.invoiceNumber}</span>
         </div>
         <div className="flex gap-2">
-          <span className="font-bold text-zinc-800 uppercase tracking-wider text-[10px]">Date:</span>
+          <span className="font-bold text-black uppercase tracking-wider text-[10px]">Date:</span>
           <span className="font-black text-[10px]">{invoice.date ? invoice.date.split('-').reverse().join('-') : ''}</span>
         </div>
       </div>
 
       <div className="mb-2 space-y-0.5">
         <p className="font-black text-xs">
-          <span className="text-zinc-800 font-bold">{invoice.clientLabel}: </span>
+          <span className="text-black font-bold">{invoice.clientLabel}: </span>
           <span className="uppercase">{invoice.clientName}</span>
         </p>
         {(invoice as any).doctorName && (
-          <p className="font-black text-xs text-zinc-800">
-            <span className="font-bold text-zinc-800">{doctorLabel}: </span>
+          <p className="font-black text-xs text-black">
+            <span className="font-bold text-black">{doctorLabel}: </span>
             <span className="uppercase">{(invoice as any).doctorName}</span>
           </p>
         )}
-        {invoice.clientPhone && <p className="text-[10px] text-zinc-800">✆ {invoice.clientPhone}</p>}
+        {invoice.clientPhone && <p className="text-[10px] text-black">✆ {invoice.clientPhone}</p>}
       </div>
 
       <div className="overflow-x-auto -mx-[10px] px-[10px] mb-2">
@@ -73,13 +73,13 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
           <thead>
             <tr style={{ borderBottom: bdr, backgroundColor: '#f9f9f9' }}>
               <th style={{ border: bdr, padding: '2px 4px', width: '20px', textAlign: 'center', whiteSpace: 'nowrap' }}>Sr.</th>
-              <th style={{ border: bdr, padding: '2px 4px', textAlign: 'left' }}>Product Name</th>
-              <th style={{ border: bdr, padding: '2px 4px', width: '40px', textAlign: 'center', whiteSpace: 'nowrap' }}>Pack</th>
+              <th style={{ border: bdr, padding: '2px 4px', textAlign: 'center' }}>Product Name</th>
+              <th style={{ border: bdr, padding: '2px 4px', width: '56px', textAlign: 'center', whiteSpace: 'nowrap' }}>Pack</th>
               <th style={{ border: bdr, padding: '2px 4px', width: '56px', textAlign: 'center', whiteSpace: 'nowrap' }}>Batch</th>
               <th style={{ border: bdr, padding: '2px 4px', width: '48px', textAlign: 'center', whiteSpace: 'nowrap' }}>Expiry</th>
               <th style={{ border: bdr, padding: '2px 4px', width: '32px', textAlign: 'center', whiteSpace: 'nowrap' }}>Qty</th>
-              <th style={{ border: bdr, padding: '2px 4px', width: '64px', textAlign: 'right', whiteSpace: 'nowrap' }}>MRP</th>
-              <th style={{ border: bdr, padding: '2px 4px', width: '64px', textAlign: 'right', whiteSpace: 'nowrap' }}>Amount</th>
+              <th style={{ border: bdr, padding: '2px 4px', width: '50px', textAlign: 'center', whiteSpace: 'nowrap' }}>MRP</th>
+              <th style={{ border: bdr, padding: '2px 4px', width: '64px', textAlign: 'center', whiteSpace: 'nowrap' }}>Amount</th>
             </tr>
           </thead>
           <tbody>
@@ -98,7 +98,7 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
           </tbody>
           <tfoot>
             <tr style={{ backgroundColor: '#f9f9f9', fontWeight: 'bold', borderTop: bdr }}>
-              <td colSpan={5} style={{ border: bdr, padding: '2px 4px', textAlign: 'right', color: '#27272a', fontSize: '10px' }}>Total</td>
+              <td colSpan={5} style={{ border: bdr, padding: '2px 4px', textAlign: 'right', color: '#000000', fontSize: '10px' }}>Total</td>
               <td style={{ border: bdr, padding: '2px 4px', textAlign: 'center', whiteSpace: 'nowrap' }}>{invoice.items.reduce((s, i) => s + i.quantity, 0)}</td>
               <td style={{ border: bdr, padding: '2px 4px' }}></td>
               <td style={{ border: bdr, padding: '2px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>{subtotal.toFixed(2)}</td>
@@ -109,20 +109,20 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
 
       <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', border: bdr }}>
         <div style={{ padding: '6px 8px', borderRight: bdr }}>
-          <p className="font-bold uppercase text-[9px] text-zinc-800">Total Invoice Amount in Words</p>
+          <p className="font-bold uppercase text-[9px] text-black">Total Invoice Amount in Words</p>
           <p className="font-black text-xs italic">{numberToWords(invoice.total)}</p>
         </div>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr }}>
-            <span className="font-bold text-zinc-800 uppercase text-[9px]">Sub Total</span>
+            <span className="font-bold text-black uppercase text-[9px]">Sub Total</span>
             <span className="font-bold">{subtotal.toFixed(2)}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr }}>
-            <span className="font-bold text-zinc-800 uppercase text-[9px]">Disc ({invoice.discountPercentage}%)</span>
+            <span className="font-bold text-black uppercase text-[9px]">Disc ({invoice.discountPercentage}%)</span>
             <span className="font-bold text-red-500">-{discountAmount.toFixed(2)}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr }}>
-            <span className="font-bold text-zinc-800 uppercase text-[9px]">Round Off</span>
+            <span className="font-bold text-black uppercase text-[9px]">Round Off</span>
             <span className="font-bold">{invoice.roundOff.toFixed(2)}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 8px', borderBottom: thinBdr, backgroundColor: `${themeColor}12`, color: themeColor }} className="font-black uppercase text-sm">
@@ -134,11 +134,11 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
 
       <div className="mt-3 grid grid-cols-2 gap-4">
         <div>
-          <p className="font-bold underline text-zinc-900 mb-1 text-[10px]">
+          <p className="font-bold underline text-black mb-1 text-[11px]">
             Terms and Conditions
           </p>
 
-          <div className="font-bold text-[9px] space-y-0.5 text-zinc-800">
+          <div className="font-bold text-[10px] space-y-0.5 text-black">
             {invoice.terms
               ?.split('\n')
               .filter(t => t.trim())

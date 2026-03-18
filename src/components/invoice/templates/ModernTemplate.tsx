@@ -19,8 +19,8 @@ export const ModernTemplate = ({ invoice, settings }: TemplateProps) => {
         <div className="flex justify-end mb-0.5"><DLNumbers dlNumbers={dlNumbers} /></div>
         <div className="text-center mb-2">
           <CompanyName name={settings.companyName} themeColor={themeColor} titleSize={(invoice as any).companyTitleSize || settings.companyTitleSize} />
-          <p className="text-zinc-500 text-[10px] mt-0.5 max-w-sm mx-auto">{settings.companyAddress}</p>
-          <div className="flex justify-center gap-4 mt-0.5 text-[10px] text-zinc-400 flex-wrap">
+          <p className="text-black text-[10px] mt-0.5 max-w-sm mx-auto">{settings.companyAddress}</p>
+          <div className="flex justify-center gap-4 mt-0.5 text-[10px] text-black flex-wrap">
             {settings.companyPhone && <span>{settings.companyPhone}</span>}
             {settings.companyPhone && settings.companyEmail && <span>•</span>}
             {settings.companyEmail && <span>{settings.companyEmail}</span>}
@@ -33,36 +33,36 @@ export const ModernTemplate = ({ invoice, settings }: TemplateProps) => {
           <InvoiceTitle themeColor={themeColor} />
         </div>
 
-        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[8px] font-semibold tracking-wider text-zinc-500 uppercase">
+        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[8px] font-semibold tracking-wider text-black uppercase">
           ORIGINAL FOR RECIPIENT
         </span>
       </div>
 
       <div className="flex justify-between items-center bg-zinc-50 px-4 py-2 rounded-xl mb-4">
         <div className="space-y-0.5">
-          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Invoice Number</p>
+          <p className="text-[9px] font-bold text-black uppercase tracking-widest">Invoice Number</p>
           <p className="text-base font-black" style={{ color: themeColor }}>#{invoice.invoiceNumber}</p>
         </div>
         <div className="text-right space-y-0.5">
-          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Invoice Date</p>
+          <p className="text-[9px] font-bold text-black uppercase tracking-widest">Invoice Date</p>
           <p className="text-base font-black">{invoice.date}</p>
         </div>
       </div>
 
       <div className="mb-4 space-y-0.5">
-        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">Bill To</p>
+        <p className="text-[9px] font-bold text-black uppercase tracking-widest mb-0.5">Bill To</p>
         <h3 className="text-base font-black">
-          <span className="text-zinc-500 font-bold text-sm">{invoice.clientLabel}: </span>
+          <span className="text-black font-bold text-sm">{invoice.clientLabel}: </span>
           <span className="uppercase">{invoice.clientName}</span>
         </h3>
         {(invoice as any).doctorName && (
-          <p className="text-sm font-black text-zinc-700">
-            <span className="text-zinc-500 font-bold text-xs">{doctorLabel}: </span>
+          <p className="text-sm font-black text-black">
+            <span className="text-black font-bold text-xs">{doctorLabel}: </span>
             <span className="uppercase">{(invoice as any).doctorName}</span>
           </p>
         )}
-        {invoice.clientEmail && <p className="text-zinc-400 text-[10px] mt-0.5">{invoice.clientEmail}</p>}
-        {invoice.clientPhone && <p className="text-zinc-400 text-[10px]">✆ {invoice.clientPhone}</p>}
+        {invoice.clientEmail && <p className="text-black text-[10px] mt-0.5">{invoice.clientEmail}</p>}
+        {invoice.clientPhone && <p className="text-black text-[10px]">✆ {invoice.clientPhone}</p>}
       </div>
 
       <div className="mb-4 overflow-x-auto -mx-3 px-3">
@@ -78,15 +78,15 @@ export const ModernTemplate = ({ invoice, settings }: TemplateProps) => {
           <div className="divide-y divide-zinc-100 border-x border-zinc-100 text-[11px]">
             {invoice.items.map((item, i) => (
               <div key={i} className="grid grid-cols-12 px-3 py-1.5">
-                <div className="col-span-3 font-bold text-zinc-900">{item.description}</div>
-                <div className="col-span-1 text-center text-[10px] text-zinc-400">{item.unit || '-'}</div>
-                <div className="col-span-2 text-center text-[10px] text-zinc-400">
+                <div className="col-span-3 font-bold text-black">{item.description}</div>
+                <div className="col-span-1 text-center text-[10px] text-black">{item.unit || '-'}</div>
+                <div className="col-span-2 text-center text-[10px] text-black">
                   {(item as any).batchNo && <div>{(item as any).batchNo}</div>}
                   {(item as any).expiryDate && <div>{formatExpiry((item as any).expiryDate, (item as any).expiryMode)}</div>}
                   {!(item as any).batchNo && !(item as any).expiryDate && <span>-</span>}
                 </div>
-                <div className="col-span-2 text-right text-zinc-500">{item.quantity}</div>
-                <div className="col-span-2 text-right text-zinc-500">{formatCurrency(item.unitPrice, settings.currency)}</div>
+                <div className="col-span-2 text-right text-black">{item.quantity}</div>
+                <div className="col-span-2 text-right text-black">{formatCurrency(item.unitPrice, settings.currency)}</div>
                 <div className="col-span-2 text-right font-black" style={{ color: themeColor }}>{formatCurrency(item.total, settings.currency)}</div>
               </div>
             ))}
@@ -96,13 +96,13 @@ export const ModernTemplate = ({ invoice, settings }: TemplateProps) => {
 
       <div className="grid grid-cols-12 gap-8">
         <div className="col-span-7">
-          <p className="text-[9px] font-bold uppercase text-zinc-400 mb-1">Amount in Words</p>
-          <p className="text-xs font-black italic text-zinc-900">{numberToWords(invoice.total)}</p>
+          <p className="text-[9px] font-bold uppercase text-black mb-1">Amount in Words</p>
+          <p className="text-xs font-black italic text-black">{numberToWords(invoice.total)}</p>
         </div>
         <div className="col-span-5 bg-zinc-50 px-4 py-3 rounded-2xl space-y-2">
-          <div className="flex justify-between text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+          <div className="flex justify-between text-[10px] font-bold text-black uppercase tracking-widest">
             <span>Sub Total</span>
-            <span className="text-zinc-900">{formatCurrency(subtotal, settings.currency)}</span>
+            <span className="text-black">{formatCurrency(subtotal, settings.currency)}</span>
           </div>
           {invoice.discountPercentage > 0 && (
             <div className="flex justify-between text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
@@ -119,11 +119,11 @@ export const ModernTemplate = ({ invoice, settings }: TemplateProps) => {
 
       <div className="mt-auto pt-4 grid grid-cols-2 gap-8">
         <div>
-          <p className="font-bold underline text-zinc-900 mb-1 text-[10px]">
+          <p className="font-bold underline text-black mb-1 text-[10px]">
             Terms and Conditions
           </p>
 
-          <div className="font-bold text-[9px] space-y-0.5 text-zinc-800">
+          <div className="font-bold text-[9px] space-y-0.5 text-black">
             {invoice.terms
               ?.split('\n')
               .filter(t => t.trim())

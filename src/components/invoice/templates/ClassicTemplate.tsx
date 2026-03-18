@@ -19,8 +19,8 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
         <div className="flex justify-end mb-0.5"><DLNumbers dlNumbers={dlNumbers} /></div>
         <div className="text-center border-b-2 pb-2 mb-2" style={{ borderColor: themeColor }}>
           <CompanyName name={settings.companyName} themeColor={themeColor} titleSize={(invoice as any).companyTitleSize || settings.companyTitleSize} />
-          <p className="mt-0.5 text-xs text-zinc-600">{settings.companyAddress}</p>
-          <div className="flex justify-center gap-4 mt-0.5 text-[10px] text-zinc-500 flex-wrap">
+          <p className="mt-0.5 text-xs text-black">{settings.companyAddress}</p>
+          <div className="flex justify-center gap-4 mt-0.5 text-[10px] text-black flex-wrap">
             {settings.companyPhone && <span>✆ {settings.companyPhone}</span>}
             {settings.companyEmail && <span>✉ {settings.companyEmail}</span>}
             {settings.companyWebsite && <span>🌐 {settings.companyWebsite}</span>}
@@ -33,36 +33,36 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
           <InvoiceTitle themeColor={themeColor} />
         </div>
 
-        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[8px] font-semibold tracking-wider text-zinc-500 uppercase">
+        <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[8px] font-semibold tracking-wider text-black uppercase">
           ORIGINAL FOR RECIPIENT
         </span>
       </div>
 
       <div className="flex justify-between items-center mb-3">
         <div className="space-y-0.5">
-          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Invoice Number</p>
+          <p className="text-[9px] font-bold text-black uppercase tracking-widest">Invoice Number</p>
           <p className="text-base font-black">#{invoice.invoiceNumber}</p>
         </div>
         <div className="text-right space-y-0.5">
-          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Invoice Date</p>
+          <p className="text-[9px] font-bold text-black uppercase tracking-widest">Invoice Date</p>
           <p className="text-base font-black">{invoice.date}</p>
         </div>
       </div>
 
       <div className="mb-3 space-y-0.5">
-        <h3 className="text-[9px] font-bold uppercase border-b pb-1 mb-1 text-zinc-400" style={{ borderColor: `${themeColor}30` }}>Client</h3>
+        <h3 className="text-[9px] font-bold uppercase border-b pb-1 mb-1 text-black" style={{ borderColor: `${themeColor}30` }}>Client</h3>
         <p className="font-bold text-sm">
-          <span className="text-zinc-500">{invoice.clientLabel}: </span>
+          <span className="text-black">{invoice.clientLabel}: </span>
           <span className="uppercase">{invoice.clientName}</span>
         </p>
         {(invoice as any).doctorName && (
-          <p className="font-bold text-sm text-zinc-700">
-            <span className="text-zinc-500">{doctorLabel}: </span>
+          <p className="font-bold text-sm text-black">
+            <span className="text-black">{doctorLabel}: </span>
             <span className="uppercase">{(invoice as any).doctorName}</span>
           </p>
         )}
-        {invoice.clientEmail && <p className="text-[10px] text-zinc-500">{invoice.clientEmail}</p>}
-        {invoice.clientPhone && <p className="text-[10px] text-zinc-500">✆ {invoice.clientPhone}</p>}
+        {invoice.clientEmail && <p className="text-[10px] text-black">{invoice.clientEmail}</p>}
+        {invoice.clientPhone && <p className="text-[10px] text-black">✆ {invoice.clientPhone}</p>}
       </div>
 
       <div className="overflow-x-auto -mx-3 px-3">
@@ -82,9 +82,9 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
             {invoice.items.map((item, i) => (
               <tr key={i}>
                 <td className="p-1.5">{item.description}</td>
-                <td className="p-1.5 text-center text-[10px] text-zinc-500 whitespace-nowrap">{item.unit || '-'}</td>
-                <td className="p-1.5 text-center text-[10px] text-zinc-500 whitespace-nowrap">{(item as any).batchNo || '-'}</td>
-                <td className="p-1.5 text-center text-[10px] text-zinc-500 whitespace-nowrap">{formatExpiry((item as any).expiryDate, (item as any).expiryMode)}</td>
+                <td className="p-1.5 text-center text-[10px] text-black whitespace-nowrap">{item.unit || '-'}</td>
+                <td className="p-1.5 text-center text-[10px] text-black whitespace-nowrap">{(item as any).batchNo || '-'}</td>
+                <td className="p-1.5 text-center text-[10px] text-black whitespace-nowrap">{formatExpiry((item as any).expiryDate, (item as any).expiryMode)}</td>
                 <td className="p-1.5 text-right whitespace-nowrap">{item.quantity}</td>
                 <td className="p-1.5 text-right whitespace-nowrap">{formatCurrency(item.unitPrice, settings.currency)}</td>
                 <td className="p-1.5 text-right font-bold whitespace-nowrap">{formatCurrency(item.total, settings.currency)}</td>
@@ -96,19 +96,19 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
 
       <div className="mt-4 grid grid-cols-12 gap-6">
         <div className="col-span-7">
-          <p className="text-[9px] font-bold uppercase text-zinc-400 mb-0.5">Amount in Words</p>
+          <p className="text-[9px] font-bold uppercase text-black mb-0.5">Amount in Words</p>
           <p className="font-bold italic text-xs">{numberToWords(invoice.total)}</p>
         </div>
         <div className="col-span-5 space-y-1.5">
           <div className="flex justify-between text-xs">
-            <span className="text-zinc-500">Sub Total</span>
+            <span className="text-black">Sub Total</span>
             <span className="font-bold">{formatCurrency(subtotal, settings.currency)}</span>
           </div>
           <div className="flex justify-between text-xs text-red-600">
             <span>Discount ({invoice.discountPercentage}%)</span>
             <span>-{formatCurrency(discountAmount, settings.currency)}</span>
           </div>
-          <div className="flex justify-between text-xs text-zinc-500">
+          <div className="flex justify-between text-xs text-black">
             <span>Round Off</span>
             <span>{formatCurrency(invoice.roundOff, settings.currency)}</span>
           </div>
@@ -121,11 +121,11 @@ export const ClassicTemplate = ({ invoice, settings }: TemplateProps) => {
 
       <div className="mt-auto pt-4 grid grid-cols-2 gap-6">
         <div>
-          <p className="font-bold underline text-zinc-900 mb-1 text-[10px]">
+          <p className="font-bold underline text-black mb-1 text-[10px]">
             Terms and Conditions
           </p>
 
-          <div className="font-bold text-[9px] space-y-0.5 text-zinc-800">
+          <div className="font-bold text-[9px] space-y-0.5 text-black">
             {invoice.terms
               ?.split('\n')
               .filter(t => t.trim())
