@@ -155,7 +155,7 @@ const TermsBlock = ({ terms, showSignatory, companyName, useDigitalSignature, si
     ) : <View />}
     {showSignatory && (
       <View style={{ width: 140, alignItems: 'center' }}>
-        <Text style={[S.tiny, S.muted, { marginBottom: 4 }]}>For, {companyName}</Text>
+        <Text style={[S.tiny, S.bold, { marginBottom: 4 }]}>For, {companyName}</Text>
         {useDigitalSignature && signatureUrl ? (
           <Image src={signatureUrl} style={{ width: 120, height: 40, objectFit: 'contain', marginBottom: 4 }} />
         ) : (
