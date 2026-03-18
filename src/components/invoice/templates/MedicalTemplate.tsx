@@ -85,14 +85,14 @@ export const MedicalTemplate = ({ invoice, settings }: TemplateProps) => {
           <tbody>
             {invoice.items.map((item, i) => (
               <tr key={i} style={{ borderBottom: thinBdr }}>
-                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center' }}>{i + 1}</td>
-                <td style={{ border: bdr, padding: '1px 4px' }}>{item.description}</td>
-                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', fontSize: '9px', whiteSpace: 'nowrap' }}>{item.unit || '-'}</td>
-                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', fontSize: '9px', whiteSpace: 'nowrap' }}>{(item as any).batchNo || '-'}</td>
-                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', fontSize: '9px', whiteSpace: 'nowrap' }}>{formatExpiry((item as any).expiryDate, (item as any).expiryMode)}</td>
-                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', whiteSpace: 'nowrap' }}>{item.quantity}</td>
-                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>{item.unitPrice.toFixed(2)}</td>
-                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'right', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{item.total.toFixed(2)}</td>
+                <td style={{ border: bdr, padding: '1px 4px', fontSize: '12px', textAlign: 'center' }}>{i + 1}</td>
+                <td style={{ border: bdr, padding: '1px 4px', fontSize: '12px' }}>{item.description}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>{item.unit || '-'}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>{(item as any).batchNo || '-'}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>{formatExpiry((item as any).expiryDate, (item as any).expiryMode)}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>{item.quantity}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'right', fontSize: '12px', whiteSpace: 'nowrap' }}>{item.unitPrice.toFixed(2)}</td>
+                <td style={{ border: bdr, padding: '1px 4px', textAlign: 'right', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{item.total.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

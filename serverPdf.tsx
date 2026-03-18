@@ -64,6 +64,7 @@ const S = StyleSheet.create({
   muted:  { color: '#27272a' },
   tiny:   { fontSize: 8 },
   small:  { fontSize: 9 },
+  big: {fontSize: 10}
 });
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
@@ -233,14 +234,14 @@ const MedicalPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
         {/* Item rows */}
         {invoice.items.map((item: any, idx: number) => (
           <View key={idx} style={[S.row, { borderBottomWidth: 0.5, borderBottomColor: thinBdrColor }]}>
-            <Text style={[S.tiny, { width: colW[0], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{idx + 1}</Text>
-            <Text style={[S.tiny, { width: colW[1], padding: 3, borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.description}</Text>
-            <Text style={[S.tiny, { width: colW[2], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.unit || '-'}</Text>
-            <Text style={[S.tiny, { width: colW[3], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.batchNo || '-'}</Text>
-            <Text style={[S.tiny, { width: colW[4], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{formatExpiry(item.expiryDate, item.expiryMode)}</Text>
-            <Text style={[S.tiny, { width: colW[5], padding: 3, textAlign: 'right', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.quantity}</Text>
-            <Text style={[S.tiny, { width: colW[6], padding: 3, textAlign: 'right', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.unitPrice.toFixed(2)}</Text>
-            <Text style={[S.bold, S.tiny, { width: colW[7], padding: 3, textAlign: 'right' }]}>{item.total.toFixed(2)}</Text>
+            <Text style={[S.big, { width: colW[0], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{idx + 1}</Text>
+            <Text style={[S.big, { width: colW[1], padding: 3, borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.description}</Text>
+            <Text style={[S.big, { width: colW[2], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.unit || '-'}</Text>
+            <Text style={[S.big, { width: colW[3], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.batchNo || '-'}</Text>
+            <Text style={[S.big, { width: colW[4], padding: 3, textAlign: 'center', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{formatExpiry(item.expiryDate, item.expiryMode)}</Text>
+            <Text style={[S.big, { width: colW[5], padding: 3, textAlign: 'right', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.quantity}</Text>
+            <Text style={[S.big, { width: colW[6], padding: 3, textAlign: 'right', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{item.unitPrice.toFixed(2)}</Text>
+            <Text style={[S.bold, S.big, { width: colW[7], padding: 3, textAlign: 'right' }]}>{item.total.toFixed(2)}</Text>
           </View>
         ))}
         {/* Footer total row */}
