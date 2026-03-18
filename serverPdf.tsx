@@ -245,7 +245,7 @@ const MedicalPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
           </View>
         ))}
         {/* Footer total row */}
-        <View style={[S.row, { backgroundColor: '#f4f4f5', borderTopWidth: bdrWidth, borderTopColor: bdrColor }]}>
+        <View style={[S.row, { backgroundColor: '#f4f4f5' }]}>
           <Text style={[S.bold, S.tiny, { width: '68%', padding: 4, textAlign: 'right', color: '#000000', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>Total</Text>
           <Text style={[S.bold, S.tiny, { width: '8%', padding: 4, textAlign: 'right', borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}>{invoice.items.reduce((s: number, i: any) => s + i.quantity, 0)}</Text>
           <Text style={[S.tiny, { width: '10%', padding: 4, borderRightWidth: bdrWidth, borderRightColor: bdrColor }]}></Text>
