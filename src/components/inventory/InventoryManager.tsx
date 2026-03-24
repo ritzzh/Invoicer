@@ -12,7 +12,7 @@ interface InventoryManagerProps {
   currency: string;
 }
 
-const EMPTY: Product = { name: '', description: '', basePrice: 0, unit: 'pcs', batchNo: '', expiryDate: '', expiryMode: 'full' } as any;
+const EMPTY: Product = { name: '', description: '', basePrice: 0, unit: 'pcs', batchNo: '', expiryDate: '', expiryMode: 'full', hsn: '' } as any;
 
 export const InventoryManager = ({ products, onAdd, onUpdate, onDelete, currency }: InventoryManagerProps) => {
   const [form, setForm] = useState<Product>({ ...EMPTY });
@@ -68,6 +68,11 @@ export const InventoryManager = ({ products, onAdd, onUpdate, onDelete, currency
           </div>
 
           <div className="space-y-1">
+            <label className="text-xs font-bold text-zinc-400 uppercase">HSN Code <span className="normal-case text-zinc-300">(optional)</span></label>
+            <input placeholder="e.g. 330490" className="input" value={(form as any).hsn || ''} onChange={e => setForm({ ...form, hsn: e.target.value } as any)} />
+          </div>
+
+          <div className="space-y-1">
             <label className="text-xs font-bold text-zinc-400 uppercase">
               Expiry Date
               <span className="normal-case font-normal text-zinc-300 ml-1">
@@ -102,6 +107,7 @@ export const InventoryManager = ({ products, onAdd, onUpdate, onDelete, currency
                   <th className="px-4 py-3">Product</th>
                   <th className="px-4 py-3">Price</th>
                   <th className="px-4 py-3">Unit</th>
+                  <th className="px-4 py-3">HSN</th>
                   <th className="px-4 py-3">Batch</th>
                   <th className="px-4 py-3">Expiry</th>
                   <th className="px-4 py-3 text-right">Actions</th>
@@ -113,6 +119,7 @@ export const InventoryManager = ({ products, onAdd, onUpdate, onDelete, currency
                     <td className="px-4 py-3 font-medium">{p.name}</td>
                     <td className="px-4 py-3 font-mono">{formatCurrency(p.basePrice, currency)}</td>
                     <td className="px-4 py-3 text-zinc-500">{p.unit || <span className="text-zinc-300">—</span>}</td>
+                    <td className="px-4 py-3 text-zinc-500 font-mono text-xs">{(p as any).hsn || <span className="text-zinc-300">—</span>}</td>
                     <td className="px-4 py-3 text-zinc-500">{(p as any).batchNo || <span className="text-zinc-300">—</span>}</td>
                     <td className="px-4 py-3 text-zinc-500">{(p as any).expiryDate || <span className="text-zinc-300">—</span>}</td>
                     <td className="px-4 py-3 text-right space-x-2">
@@ -122,7 +129,7 @@ export const InventoryManager = ({ products, onAdd, onUpdate, onDelete, currency
                   </tr>
                 ))}
                 {products.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-12 text-center text-zinc-400 text-sm">No products yet. Add your first item!</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-12 text-center text-zinc-400 text-sm">No products yet. Add your first item!</td></tr>
                 )}
               </tbody>
             </table>
@@ -140,6 +147,7 @@ export const InventoryManager = ({ products, onAdd, onUpdate, onDelete, currency
                     <p className="font-bold text-sm">{p.name}</p>
                     <p className="font-mono text-sm text-zinc-600 mt-0.5">{formatCurrency(p.basePrice, currency)}</p>
                     {p.unit && <p className="text-xs text-zinc-400 mt-1">Unit: {p.unit}</p>}
+                    {(p as any).hsn && <p className="text-xs text-zinc-400">HSN: {(p as any).hsn}</p>}
                     {(p as any).batchNo && <p className="text-xs text-zinc-400">Batch: {(p as any).batchNo}</p>}
                     {(p as any).expiryDate && <p className="text-xs text-zinc-400">Expires: {(p as any).expiryDate}</p>}
                   </div>

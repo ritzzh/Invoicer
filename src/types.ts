@@ -11,6 +11,7 @@ export interface Settings {
   signatureUrl: string;     // base64 or URL of authorised signature image
   companyTitleSize?: number; // font size override for company title on invoices
   defaultTerms?: string;     // default terms and conditions for all invoices
+  gstNumber?: string;        // GSTIN for GST invoices
 }
 
 export interface Product {
@@ -22,6 +23,7 @@ export interface Product {
   batchNo?: string;
   expiryDate?: string;
   expiryMode?: 'full' | 'monthyear'; // how expiry is entered/displayed
+  hsn?: string;             // HSN code for GST classification
 }
 
 export interface InvoiceItem {
@@ -34,6 +36,7 @@ export interface InvoiceItem {
   batchNo?: string;
   expiryDate?: string;
   expiryMode?: 'full' | 'monthyear';
+  hsn?: string;             // HSN code for GST classification
   total: number;
 }
 
@@ -55,7 +58,7 @@ export interface Invoice {
   total: number;
   balanceDue?: number;
   items: InvoiceItem[];
-  template: 'modern' | 'classic' | 'minimal' | 'medical';
+  template: 'modern' | 'classic' | 'minimal' | 'medical' | 'medical-landscape';
   themeColor?: string;
   terms?: string;
   showSignatory?: boolean;

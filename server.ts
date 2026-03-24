@@ -76,6 +76,7 @@ db.exec(`
     unit TEXT DEFAULT 'pcs',
     batchNo TEXT,
     expiryDate TEXT,
+    hsn TEXT,
     FOREIGN KEY (userId) REFERENCES users(id)
   );
 
@@ -113,6 +114,7 @@ db.exec(`
     unit TEXT,
     batchNo TEXT,
     expiryDate TEXT,
+    hsn TEXT,
     total REAL NOT NULL,
     FOREIGN KEY (invoiceId) REFERENCES invoices(id) ON DELETE CASCADE
   );
@@ -178,6 +180,7 @@ const productMigrations = [
   { name: 'batchNo', sql: "ALTER TABLE products ADD COLUMN batchNo TEXT" },
   { name: 'expiryDate', sql: "ALTER TABLE products ADD COLUMN expiryDate TEXT" },
   { name: 'expiryMode', sql: "ALTER TABLE products ADD COLUMN expiryMode TEXT DEFAULT 'full'" },
+  { name: 'hsn', sql: "ALTER TABLE products ADD COLUMN hsn TEXT" },
 ];
 
 for (const m of productMigrations) {
@@ -198,6 +201,7 @@ const itemsMigrations = [
   { name: 'batchNo', sql: "ALTER TABLE invoice_items ADD COLUMN batchNo TEXT" },
   { name: 'expiryDate', sql: "ALTER TABLE invoice_items ADD COLUMN expiryDate TEXT" },
   { name: 'expiryMode', sql: "ALTER TABLE invoice_items ADD COLUMN expiryMode TEXT DEFAULT 'full'" },
+  { name: 'hsn', sql: "ALTER TABLE invoice_items ADD COLUMN hsn TEXT" },
 ];
 
 for (const m of itemsMigrations) {
@@ -342,19 +346,19 @@ async function startServer() {
   });
 
   app.post("/api/products", authenticate, (req: any, res) => {
-    const { name, description, basePrice, unit, batchNo, expiryDate, expiryMode } = req.body;
+    const { name, description, basePrice, unit, batchNo, expiryDate, expiryMode, hsn } = req.body;
     const result = db.prepare(
-      "INSERT INTO products (userId, name, description, basePrice, unit, batchNo, expiryDate, expiryMode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-    ).run(req.userId, name, description, basePrice, unit || 'pcs', batchNo || null, expiryDate || null, expiryMode || 'full');
+      "INSERT INTO products (userId, name, description, basePrice, unit, batchNo, expiryDate, expiryMode, hsn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).run(req.userId, name, description, basePrice, unit || 'pcs', batchNo || null, expiryDate || null, expiryMode || 'full', hsn || null);
     const product = db.prepare("SELECT * FROM products WHERE id = ?").get(result.lastInsertRowid);
     res.json(product);
   });
 
   app.put("/api/products/:id", authenticate, (req: any, res) => {
-    const { name, description, basePrice, unit, batchNo, expiryDate, expiryMode } = req.body;
+    const { name, description, basePrice, unit, batchNo, expiryDate, expiryMode, hsn } = req.body;
     db.prepare(
-      "UPDATE products SET name = ?, description = ?, basePrice = ?, unit = ?, batchNo = ?, expiryDate = ?, expiryMode = ? WHERE id = ? AND userId = ?"
-    ).run(name, description, basePrice, unit, batchNo || null, expiryDate || null, expiryMode || 'full', req.params.id, req.userId);
+      "UPDATE products SET name = ?, description = ?, basePrice = ?, unit = ?, batchNo = ?, expiryDate = ?, expiryMode = ?, hsn = ? WHERE id = ? AND userId = ?"
+    ).run(name, description, basePrice, unit, batchNo || null, expiryDate || null, expiryMode || 'full', hsn || null, req.params.id, req.userId);
     const product = db.prepare("SELECT * FROM products WHERE id = ?").get(req.params.id);
     res.json(product);
   });
@@ -512,12 +516,12 @@ async function startServer() {
 
       const invoiceId = result.lastInsertRowid;
       const insertItem = db.prepare(`
-        INSERT INTO invoice_items (invoiceId, productId, description, quantity, unitPrice, unit, batchNo, expiryDate, expiryMode, total)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO invoice_items (invoiceId, productId, description, quantity, unitPrice, unit, batchNo, expiryDate, expiryMode, hsn, total)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       for (const item of items) {
-        insertItem.run(invoiceId, item.productId, item.description, item.quantity, item.unitPrice, item.unit, item.batchNo || null, item.expiryDate || null, item.expiryMode || 'full', item.total);
+        insertItem.run(invoiceId, item.productId, item.description, item.quantity, item.unitPrice, item.unit, item.batchNo || null, item.expiryDate || null, item.expiryMode || 'full', item.hsn || null, item.total);
       }
 
       const inv = db.prepare("SELECT * FROM invoices WHERE id = ?").get(invoiceId) as any;
@@ -559,12 +563,12 @@ async function startServer() {
       db.prepare("DELETE FROM invoice_items WHERE invoiceId = ?").run(req.params.id);
       
       const insertItem = db.prepare(`
-        INSERT INTO invoice_items (invoiceId, productId, description, quantity, unitPrice, unit, batchNo, expiryDate, expiryMode, total)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO invoice_items (invoiceId, productId, description, quantity, unitPrice, unit, batchNo, expiryDate, expiryMode, hsn, total)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       for (const item of items) {
-        insertItem.run(req.params.id, item.productId, item.description, item.quantity, item.unitPrice, item.unit, item.batchNo || null, item.expiryDate || null, item.expiryMode || 'full', item.total);
+        insertItem.run(req.params.id, item.productId, item.description, item.quantity, item.unitPrice, item.unit, item.batchNo || null, item.expiryDate || null, item.expiryMode || 'full', item.hsn || null, item.total);
       }
 
       const updatedInvoice = db.prepare("SELECT * FROM invoices WHERE id = ?").get(req.params.id) as any;
@@ -581,227 +585,6 @@ async function startServer() {
     db.prepare("DELETE FROM invoices WHERE id = ? AND userId = ?").run(req.params.id, req.userId);
     res.json({ success: true });
   });
-
-  // --- Invoice Email HTML Builder ---
-  function buildInvoiceEmailHtml(invoice: any, settings: any): string {
-    const theme = invoice.themeColor || '#000000';
-    const currency = settings.currency || 'INR';
-    const items: any[] = Array.isArray(invoice.items) ? invoice.items : [];
-    const subtotal = items.reduce((s: number, i: any) => s + i.total, 0);
-    const disc = subtotal * ((invoice.discountPercentage || 0) / 100);
-    const roundOff = invoice.roundOff || 0;
-    const total = invoice.total || 0;
-    const balanceDue = invoice.balanceDue || 0;
-    const dlNumbers: string[] = ((invoice.dlNumbers?.length ? invoice.dlNumbers : settings.dlNumbers) || []).filter((d: string) => d?.trim());
-    const doctorLabel = invoice.doctorLabel || 'Doctor';
-    const isMedical = invoice.template === 'medical';
-    const formattedDate = invoice.date ? invoice.date.split('-').reverse().join('-') : '';
-
-    function fmt(amount: number): string {
-      try { return new Intl.NumberFormat('en-IN', { style: 'currency', currency }).format(amount); }
-      catch { return `${currency} ${amount.toFixed(2)}`; }
-    }
-
-    function numberToWords(num: number): string {
-      const a = ['','one ','two ','three ','four ','five ','six ','seven ','eight ','nine ','ten ','eleven ','twelve ','thirteen ','fourteen ','fifteen ','sixteen ','seventeen ','eighteen ','nineteen '];
-      const b = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
-      if ((num = Math.floor(num)).toString().length > 9) return 'overflow';
-      const n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
-      if (!n) return '';
-      let str = '';
-      str += +n[1] ? (a[+n[1]] || b[n[1][0]] + ' ' + a[+n[1][1]]) + 'crore ' : '';
-      str += +n[2] ? (a[+n[2]] || b[n[2][0]] + ' ' + a[+n[2][1]]) + 'lakh ' : '';
-      str += +n[3] ? (a[+n[3]] || b[n[3][0]] + ' ' + a[+n[3][1]]) + 'thousand ' : '';
-      str += +n[4] ? (a[+n[4]] || b[n[4][0]] + ' ' + a[+n[4][1]]) + 'hundred ' : '';
-      str += +n[5] ? ((str ? 'and ' : '') + (a[+n[5]] || b[n[5][0]] + ' ' + a[+n[5][1]])) : '';
-      return str.toUpperCase() + 'RUPEES ONLY';
-    }
-
-    function formatExpiry(date?: string, mode?: string): string {
-      if (!date) return '-';
-      if (mode === 'monthyear') {
-        const d = new Date(date);
-        if (!isNaN(d.getTime())) return d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
-      }
-      return date;
-    }
-
-    const nameLen = (settings.companyName || '').length;
-    const titleFontSize = (invoice.companyTitleSize || settings.companyTitleSize) > 0
-      ? `${invoice.companyTitleSize || settings.companyTitleSize}px`
-      : nameLen <= 12 ? '28px' : nameLen <= 20 ? '24px' : nameLen <= 30 ? '20px' : '16px';
-
-    const bdr = `1.5px solid #52525b`;
-    const thinBdr = `1px solid #d4d4d8`;
-
-    const itemRows = items.map((item: any, i: number) => {
-      if (isMedical) {
-        return `<tr>
-          <td style="border:${bdr};padding:3px 5px;text-align:center;font-size:10px;">${i + 1}</td>
-          <td style="border:${bdr};padding:3px 5px;font-size:10px;">${item.description || ''}</td>
-          <td style="border:${bdr};padding:3px 5px;text-align:center;font-size:10px;">${item.unit || '-'}</td>
-          <td style="border:${bdr};padding:3px 5px;text-align:center;font-size:10px;">${item.batchNo || '-'}</td>
-          <td style="border:${bdr};padding:3px 5px;text-align:center;font-size:10px;">${formatExpiry(item.expiryDate, item.expiryMode)}</td>
-          <td style="border:${bdr};padding:3px 5px;text-align:right;font-size:10px;">${item.quantity}</td>
-          <td style="border:${bdr};padding:3px 5px;text-align:right;font-size:10px;">${(item.unitPrice || 0).toFixed(2)}</td>
-          <td style="border:${bdr};padding:3px 5px;text-align:right;font-weight:700;font-size:10px;">${(item.total || 0).toFixed(2)}</td>
-        </tr>`;
-      } else {
-        return `<tr>
-          <td style="border-bottom:${thinBdr};padding:5px 7px;font-size:11px;">${item.description || ''}</td>
-          <td style="border-bottom:${thinBdr};padding:5px 7px;text-align:center;font-size:10px;">${item.unit || '-'}</td>
-          <td style="border-bottom:${thinBdr};padding:5px 7px;text-align:center;font-size:10px;">${item.batchNo || '-'} / ${formatExpiry(item.expiryDate, item.expiryMode)}</td>
-          <td style="border-bottom:${thinBdr};padding:5px 7px;text-align:right;font-size:11px;">${item.quantity}</td>
-          <td style="border-bottom:${thinBdr};padding:5px 7px;text-align:right;font-size:11px;">${(item.unitPrice || 0).toFixed(2)}</td>
-          <td style="border-bottom:${thinBdr};padding:5px 7px;text-align:right;font-weight:700;font-size:11px;">${(item.total || 0).toFixed(2)}</td>
-        </tr>`;
-      }
-    }).join('');
-
-    const medicalTableHtml = `
-      <table style="width:100%;border-collapse:collapse;border:${bdr};font-family:Arial,sans-serif;margin-bottom:10px;">
-        <thead>
-          <tr style="background:#f4f4f5;">
-            <th style="border:${bdr};padding:4px 5px;text-align:center;font-size:10px;text-transform:uppercase;width:28px;">Sr.</th>
-            <th style="border:${bdr};padding:4px 5px;text-align:left;font-size:10px;text-transform:uppercase;">Product Name</th>
-            <th style="border:${bdr};padding:4px 5px;text-align:center;font-size:10px;text-transform:uppercase;width:44px;">Pack</th>
-            <th style="border:${bdr};padding:4px 5px;text-align:center;font-size:10px;text-transform:uppercase;width:60px;">Batch</th>
-            <th style="border:${bdr};padding:4px 5px;text-align:center;font-size:10px;text-transform:uppercase;width:52px;">Expiry</th>
-            <th style="border:${bdr};padding:4px 5px;text-align:right;font-size:10px;text-transform:uppercase;width:36px;">Qty</th>
-            <th style="border:${bdr};padding:4px 5px;text-align:right;font-size:10px;text-transform:uppercase;width:68px;">MRP</th>
-            <th style="border:${bdr};padding:4px 5px;text-align:right;font-size:10px;text-transform:uppercase;width:68px;">Amount</th>
-          </tr>
-        </thead>
-        <tbody>${itemRows}</tbody>
-        <tfoot>
-          <tr style="background:#f4f4f5;font-weight:700;border-top:${bdr};">
-            <td colspan="5" style="border:${bdr};padding:3px 5px;text-align:right;color:#27272a;font-size:10px;">Total</td>
-            <td style="border:${bdr};padding:3px 5px;text-align:right;font-size:10px;">${items.reduce((s: number, i: any) => s + i.quantity, 0)}</td>
-            <td style="border:${bdr};padding:3px 5px;font-size:10px;"></td>
-            <td style="border:${bdr};padding:3px 5px;text-align:right;font-size:10px;">${subtotal.toFixed(2)}</td>
-          </tr>
-        </tfoot>
-      </table>`;
-
-    const modernTableHtml = `
-      <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;margin-bottom:14px;">
-        <thead>
-          <tr style="background:#18181b;">
-            <th style="padding:7px;text-align:left;font-size:10px;text-transform:uppercase;color:#fff;">Description</th>
-            <th style="padding:7px;text-align:center;font-size:10px;text-transform:uppercase;color:#fff;">Unit</th>
-            <th style="padding:7px;text-align:center;font-size:10px;text-transform:uppercase;color:#fff;">Batch / Expiry</th>
-            <th style="padding:7px;text-align:right;font-size:10px;text-transform:uppercase;color:#fff;">Qty</th>
-            <th style="padding:7px;text-align:right;font-size:10px;text-transform:uppercase;color:#fff;">MRP</th>
-            <th style="padding:7px;text-align:right;font-size:10px;text-transform:uppercase;color:#fff;">Amount</th>
-          </tr>
-        </thead>
-        <tbody>${itemRows}</tbody>
-      </table>`;
-
-    const summaryBlockMedical = `
-      <table style="width:100%;border-collapse:collapse;border:${bdr};font-family:Arial,sans-serif;margin-bottom:14px;">
-        <tr>
-          <td style="padding:8px 10px;border-right:${bdr};width:58%;vertical-align:top;">
-            <div style="font-weight:700;text-transform:uppercase;color:#27272a;font-size:9px;margin-bottom:3px;">Total Amount in Words</div>
-            <div style="font-weight:700;font-size:11px;font-style:italic;">${numberToWords(total)}</div>
-          </td>
-          <td style="padding:0;width:42%;vertical-align:top;">
-            <table style="width:100%;border-collapse:collapse;">
-              <tr><td style="padding:3px 10px;font-weight:700;font-size:9px;text-transform:uppercase;color:#52525b;border-bottom:${thinBdr};">Subtotal</td><td style="padding:3px 10px;font-weight:700;font-size:9px;text-align:right;border-bottom:${thinBdr};">${subtotal.toFixed(2)}</td></tr>
-              <tr><td style="padding:3px 10px;font-weight:700;font-size:9px;text-transform:uppercase;color:#52525b;border-bottom:${thinBdr};">Disc (${invoice.discountPercentage || 0}%)</td><td style="padding:3px 10px;font-weight:700;font-size:9px;text-align:right;color:#ef4444;border-bottom:${thinBdr};">-${disc.toFixed(2)}</td></tr>
-              <tr><td style="padding:3px 10px;font-weight:700;font-size:9px;text-transform:uppercase;color:#52525b;border-bottom:${thinBdr};">Round Off</td><td style="padding:3px 10px;font-weight:700;font-size:9px;text-align:right;border-bottom:${thinBdr};">${roundOff.toFixed(2)}</td></tr>
-              <tr style="background:${theme}18;"><td style="padding:5px 10px;font-weight:900;font-size:13px;color:${theme};border-bottom:${thinBdr};">Total</td><td style="padding:5px 10px;font-weight:900;font-size:13px;color:${theme};text-align:right;border-bottom:${thinBdr};">${total.toFixed(2)}</td></tr>
-              <tr><td style="padding:3px 10px;font-weight:700;font-size:9px;text-transform:uppercase;color:#52525b;">Balance Due</td><td style="padding:3px 10px;font-weight:700;font-size:9px;text-align:right;">${balanceDue.toFixed(2)}</td></tr>
-            </table>
-          </td>
-        </tr>
-      </table>`;
-
-    const summaryBlockModern = `
-      <div style="text-align:right;margin-bottom:14px;font-family:Arial,sans-serif;">
-        <table style="width:220px;border-collapse:collapse;margin-left:auto;">
-          <tr><td style="padding:3px 0;font-size:10px;color:#52525b;">Subtotal</td><td style="padding:3px 0;font-size:10px;text-align:right;">${subtotal.toFixed(2)}</td></tr>
-          ${invoice.discountPercentage > 0 ? `<tr><td style="padding:3px 0;font-size:10px;color:#52525b;">Discount (${invoice.discountPercentage}%)</td><td style="padding:3px 0;font-size:10px;text-align:right;color:#ef4444;">-${disc.toFixed(2)}</td></tr>` : ''}
-          <tr><td style="padding:3px 0;font-size:10px;color:#52525b;">Round Off</td><td style="padding:3px 0;font-size:10px;text-align:right;">${roundOff.toFixed(2)}</td></tr>
-          <tr style="border-top:1.5px solid #18181b;"><td style="padding:5px 0;font-weight:700;font-size:14px;">Total</td><td style="padding:5px 0;font-weight:700;font-size:14px;text-align:right;color:${theme};">${fmt(total)}</td></tr>
-          ${balanceDue > 0 ? `<tr><td style="padding:3px 0;font-size:10px;color:#52525b;">Balance Due</td><td style="padding:3px 0;font-size:10px;text-align:right;">${balanceDue.toFixed(2)}</td></tr>` : ''}
-        </table>
-      </div>`;
-
-    const termsHtml = invoice.terms ? `
-      <div style="margin-top:14px;font-family:Arial,sans-serif;">
-        <div style="font-weight:700;font-size:10px;text-decoration:underline;text-transform:uppercase;margin-bottom:5px;">Terms and Conditions</div>
-        <ul style="margin:0;padding-left:16px;font-size:9px;color:#52525b;">
-          ${invoice.terms.split('\n').filter((t: string) => t.trim()).map((t: string) => `<li style="margin-bottom:2px;">${t}</li>`).join('')}
-        </ul>
-      </div>` : '';
-
-    const dlHtml = dlNumbers.length ? `
-      <div style="text-align:right;font-size:9px;font-weight:700;margin-bottom:4px;font-family:Arial,sans-serif;">
-        DL: ${dlNumbers.join(' | ')}
-      </div>` : '';
-
-    const medicalInvoiceHtml = `
-      ${dlHtml}
-      <div style="text-align:center;margin-bottom:8px;font-family:Arial,sans-serif;">
-        <div style="font-weight:900;text-transform:uppercase;letter-spacing:2px;color:${theme};font-size:${titleFontSize};line-height:1.2;">${settings.companyName || ''}</div>
-        ${settings.companyAddress ? `<div style="font-weight:700;font-size:12px;color:#27272a;margin-top:3px;">${settings.companyAddress}</div>` : ''}
-        <div style="font-size:11px;color:#27272a;font-weight:600;margin-top:2px;">${settings.companyPhone ? `<span>&#9742; ${settings.companyPhone}</span>` : ''}${settings.companyPhone && settings.companyEmail ? '&nbsp;&nbsp;' : ''}${settings.companyEmail ? `<span>&#9993; ${settings.companyEmail}</span>` : ''}</div>
-      </div>
-      <table style="width:100%;border-collapse:collapse;border:2px solid ${theme};margin-bottom:10px;font-family:Arial,sans-serif;">
-        <tr>
-          <td style="width:130px;padding:5px 10px;"></td>
-          <td style="text-align:center;padding:5px 10px;font-weight:900;font-size:22px;color:${theme};letter-spacing:0.45em;text-transform:uppercase;">INVOICE</td>
-          <td style="width:130px;text-align:right;padding:5px 10px;font-size:8px;font-weight:600;letter-spacing:0.05em;color:#27272a;text-transform:uppercase;">ORIGINAL FOR RECIPIENT</td>
-        </tr>
-      </table>
-      <table style="width:100%;border-collapse:collapse;border:${bdr};margin-bottom:10px;font-family:Arial,sans-serif;font-size:11px;">
-        <tr>
-          <td style="padding:5px 10px;"><span style="font-weight:700;color:#27272a;text-transform:uppercase;letter-spacing:0.05em;">Invoice No: </span><span style="font-weight:900;">${invoice.invoiceNumber}</span></td>
-          <td style="text-align:right;padding:5px 10px;"><span style="font-weight:700;color:#27272a;text-transform:uppercase;letter-spacing:0.05em;">Date: </span><span style="font-weight:900;">${formattedDate}</span></td>
-        </tr>
-      </table>
-      <div style="margin-bottom:10px;font-family:Arial,sans-serif;">
-        <div style="font-weight:900;font-size:12px;"><span style="font-weight:700;color:#27272a;">${invoice.clientLabel || 'Patient'}: </span><span style="text-transform:uppercase;">${invoice.clientName || ''}</span></div>
-        ${(invoice.doctorName) ? `<div style="font-weight:900;font-size:11px;margin-top:2px;"><span style="font-weight:700;color:#27272a;">${doctorLabel}: </span><span style="text-transform:uppercase;">${invoice.doctorName}</span></div>` : ''}
-        ${invoice.clientPhone ? `<div style="font-size:10px;color:#52525b;margin-top:2px;">&#9742; ${invoice.clientPhone}</div>` : ''}
-      </div>
-      ${medicalTableHtml}
-      ${summaryBlockMedical}
-      ${termsHtml}`;
-
-    const modernInvoiceHtml = `
-      ${dlHtml}
-      <div style="text-align:center;margin-bottom:10px;font-family:Arial,sans-serif;">
-        <div style="font-weight:900;text-transform:uppercase;letter-spacing:2px;color:${theme};font-size:${titleFontSize};line-height:1.2;">${settings.companyName || ''}</div>
-        ${settings.companyAddress ? `<div style="font-weight:700;font-size:12px;color:#27272a;margin-top:3px;">${settings.companyAddress}</div>` : ''}
-        <div style="font-size:11px;color:#27272a;font-weight:600;margin-top:2px;">${settings.companyPhone ? `<span>&#9742; ${settings.companyPhone}</span>` : ''}${settings.companyPhone && settings.companyEmail ? '&nbsp;&nbsp;' : ''}${settings.companyEmail ? `<span>&#9993; ${settings.companyEmail}</span>` : ''}</div>
-      </div>
-      <div style="text-align:center;margin-bottom:12px;font-family:Arial,sans-serif;">
-        <div style="font-weight:900;font-size:22px;color:${theme};letter-spacing:0.4em;text-transform:uppercase;">INVOICE</div>
-        <div style="font-size:9px;color:#52525b;">ORIGINAL FOR RECIPIENT</div>
-      </div>
-      <table style="width:100%;border-collapse:collapse;background:#f4f4f5;border-radius:6px;margin-bottom:14px;font-family:Arial,sans-serif;">
-        <tr>
-          <td style="padding:10px 14px;"><div style="font-size:9px;color:#52525b;text-transform:uppercase;letter-spacing:0.08em;">Invoice Number</div><div style="font-weight:700;font-size:14px;color:${theme};">#${invoice.invoiceNumber}</div></td>
-          <td style="text-align:right;padding:10px 14px;"><div style="font-size:9px;color:#52525b;text-transform:uppercase;letter-spacing:0.08em;">Invoice Date</div><div style="font-weight:700;font-size:14px;">${invoice.date || ''}</div></td>
-        </tr>
-      </table>
-      <div style="margin-bottom:14px;font-family:Arial,sans-serif;">
-        <div style="font-size:9px;color:#52525b;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;">Bill To</div>
-        <div style="font-weight:900;font-size:13px;"><span style="font-weight:700;color:#27272a;">${invoice.clientLabel || 'Client'}: </span><span style="text-transform:uppercase;">${invoice.clientName || ''}</span></div>
-        ${invoice.doctorName ? `<div style="font-weight:700;font-size:12px;margin-top:2px;"><span style="color:#27272a;">${doctorLabel}: </span><span style="text-transform:uppercase;">${invoice.doctorName}</span></div>` : ''}
-        ${invoice.clientEmail ? `<div style="font-size:10px;color:#52525b;margin-top:2px;">${invoice.clientEmail}</div>` : ''}
-        ${invoice.clientPhone ? `<div style="font-size:10px;color:#52525b;">&#9742; ${invoice.clientPhone}</div>` : ''}
-      </div>
-      ${modernTableHtml}
-      ${summaryBlockModern}
-      ${termsHtml}`;
-
-    const invoiceContent = isMedical ? medicalInvoiceHtml : modernInvoiceHtml;
-
-    return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:20px;background:#f4f4f5;font-family:Arial,sans-serif;"><div style="max-width:680px;margin:0 auto;background:#ffffff;border:2.5px solid #27272a;padding:16px;">${invoiceContent}</div><div style="max-width:680px;margin:12px auto;text-align:center;font-size:10px;color:#a1a1aa;">PDF invoice is attached to this email.</div></body></html>`;
-  }
 
   // --- Email Route ---
   app.post("/api/send-invoice-email", authenticate, async (req: any, res) => {
@@ -822,7 +605,7 @@ async function startServer() {
         to,
         subject,
         text: body,
-        html: invoiceData && settingsData ? buildInvoiceEmailHtml(invoiceData, settingsData) : body.replace(/\n/g, '<br>'),
+        html: body.replace(/\n/g, '<br>'),
       };
 
       // Generate PDF server-side from invoice data — no oklch, no browser issues

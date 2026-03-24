@@ -119,6 +119,7 @@ export const InvoiceEditor = ({
       batchNo: (product as any).batchNo || '',
       expiryDate: (product as any).expiryDate || '',
       expiryMode: (product as any).expiryMode || 'full',
+      hsn: (product as any).hsn || '',
       total: Number((newItems[index].quantity * product.basePrice).toFixed(2)),
     } as any;
     setInvoice((prev) => ({ ...prev, items: newItems }));
@@ -157,6 +158,7 @@ export const InvoiceEditor = ({
                 <option value="classic">Classic</option>
                 <option value="minimal">Minimal</option>
                 <option value="medical">Medical (Grid)</option>
+                <option value="medical-landscape">Medical Landscape</option>
               </select>
             </div>
           </div>
@@ -310,8 +312,8 @@ export const InvoiceEditor = ({
                       </div>
                     </div>
                   </div>
-                  {/* Unit + Batch + Expiry */}
-                  <div className="grid grid-cols-3 xs:grid-cols-3 gap-1.5 sm:gap-2">
+                  {/* Unit + Batch + HSN + Expiry */}
+                  <div className="grid grid-cols-4 xs:grid-cols-4 gap-1.5 sm:gap-2">
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-zinc-400 uppercase">Unit</label>
                       <input placeholder="e.g. Kg, pcs, sheet" className="input py-1 text-xs" value={item.unit || ''} onChange={e => updateItem(idx, 'unit', e.target.value)} />
@@ -319,6 +321,10 @@ export const InvoiceEditor = ({
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-zinc-400 uppercase">Batch No</label>
                       <input placeholder="Batch No" className="input py-1 text-xs" value={(item as any).batchNo || ''} onChange={e => updateItem(idx, 'batchNo', e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-zinc-400 uppercase">HSN</label>
+                      <input placeholder="HSN Code" className="input py-1 text-xs" value={(item as any).hsn || ''} onChange={e => updateItem(idx, 'hsn', e.target.value)} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[9px] font-bold text-zinc-400 uppercase">Expiry

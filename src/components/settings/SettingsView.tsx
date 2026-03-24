@@ -85,6 +85,13 @@ export const SettingsView = ({ settings, onSave }: SettingsViewProps) => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-400 uppercase">GST Number (GSTIN)</label>
+            <input className="input" placeholder="e.g. 09AGIPY4520D1ZA" value={(formData as any).gstNumber || ''} onChange={e => setFormData({ ...formData, gstNumber: e.target.value } as any)} />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <div className="space-y-2">
             <label className="text-xs font-bold text-zinc-400 uppercase">Website</label>
             <input className="input" value={formData.companyWebsite} onChange={e => setFormData({ ...formData, companyWebsite: e.target.value })} />
           </div>

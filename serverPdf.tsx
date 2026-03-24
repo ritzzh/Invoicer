@@ -352,6 +352,180 @@ const ModernPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
   );
 };
 
+// ── Medical Landscape Template (PDF) ─────────────────────────────────────────
+
+const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
+  const subtotal       = invoice.items.reduce((s: number, i: any) => s + i.total, 0);
+  const disc           = subtotal * (invoice.discountPercentage / 100);
+  const dlNumbers      = ((invoice.dlNumbers?.length ? invoice.dlNumbers : settings.dlNumbers) || []).filter(Boolean);
+  const doctorLabel    = invoice.doctorLabel || 'Dr Name';
+  const gstNumber      = settings.gstNumber || '';
+  const dateFormatted  = invoice.date ? invoice.date.split('-').reverse().join('-') : '';
+
+  const bdr = { borderWidth: 1, borderColor: '#000' } as const;
+  const col = { borderRightWidth: 1, borderRightColor: '#000' } as const;
+
+  const colWidths = ['5%', '36%', '8%', '9%', '9%', '10%', '7%', '8%', '8%'];
+  const headers   = ['SN.', 'PRODUCT NAME', 'PACK', 'BATCH', 'HSN', 'EXP.', 'QTY', 'M.R.P.', 'AMOUNT'];
+
+  const MIN_ROWS = 15;
+  const fillerCount = Math.max(0, MIN_ROWS - invoice.items.length);
+
+  return (
+    <Page size="A4" style={[S.page, { paddingHorizontal: 16, paddingVertical: 16 }]}>
+      {/* ROW 1: Company | Patient */}
+      <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: '#000' }}>
+        <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: '#000', padding: 5 }}>
+          <Text style={[S.bold, { fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5 }]}>{settings.companyName}</Text>
+          {settings.companyAddress ? <Text style={[S.tiny, { marginTop: 2 }]}>{settings.companyAddress}</Text> : null}
+          <View style={{ flexDirection: 'row', marginTop: 2, gap: 8 }}>
+            {settings.companyPhone ? <Text style={S.tiny}>✆ {settings.companyPhone}</Text> : null}
+            {settings.companyEmail ? <Text style={S.tiny}>✉ {settings.companyEmail}</Text> : null}
+          </View>
+        </View>
+        <View style={{ flex: 1, padding: 5 }}>
+          <Text style={[S.tiny, { marginBottom: 2 }]}>
+            <Text style={S.bold}>{invoice.clientLabel || 'Patient Name'}: </Text>
+            <Text style={[S.bold, { textTransform: 'uppercase' }]}>{invoice.clientName}</Text>
+          </Text>
+          <Text style={[S.tiny, { marginBottom: 2 }]}>
+            <Text style={S.bold}>Patient Address: </Text>{invoice.clientAddress || ''}
+          </Text>
+          {invoice.doctorName ? (
+            <Text style={[S.tiny, { marginBottom: 2 }]}>
+              <Text style={S.bold}>{doctorLabel}: </Text>
+              <Text style={[S.bold, { textTransform: 'uppercase' }]}>{invoice.doctorName}</Text>
+            </Text>
+          ) : null}
+          <Text style={S.tiny}>
+            <Text style={S.bold}>Dr Reg No.: </Text>{''}
+          </Text>
+        </View>
+      </View>
+
+      {/* ROW 2: DL/GSTIN | GST INVOICE | Invoice No/Date */}
+      <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: '#000', borderTopWidth: 0 }}>
+        <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: '#000', padding: 3 }}>
+          <Text style={[S.tiny, S.bold]}>
+            DL: {dlNumbers.join(', ')}
+          </Text>          
+          {gstNumber ? <Text style={[S.tiny, S.bold]}>GSTIN: {gstNumber}</Text> : null}
+        </View>
+        <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: '#000', padding: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5' }}>
+          <Text style={[S.bold, { fontSize: 11, letterSpacing: 3, textTransform: 'uppercase' }]}>GST INVOICE</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between',flex: 1, padding: 3 }}>
+          <Text style={S.tiny}><Text style={S.bold}>Invoice No.: </Text>{invoice.invoiceNumber}</Text>
+          <Text style={S.tiny}><Text style={S.bold}>Date: </Text>{dateFormatted}</Text>
+        </View>
+      </View>
+
+      {/* Items table */}
+      <View style={{ borderWidth: 1, borderColor: '#000', borderTopWidth: 0 }}>
+        {/* Header */}
+        <View style={{ flexDirection: 'row', backgroundColor: '#f2f2f2', borderBottomWidth: 1, borderBottomColor: '#000' }}>
+          {headers.map((h, i) => (
+            <Text key={i} style={[S.bold, S.tiny, {
+              width: colWidths[i], padding: 2, textAlign: 'center',
+              borderRightWidth: i < headers.length - 1 ? 1 : 0, borderRightColor: '#000',
+            }]}>{h}</Text>
+          ))}
+        </View>
+        {/* Item rows */}
+        {invoice.items.map((item: any, idx: number) => (
+          <View key={idx} style={{ flexDirection: 'row' }}>
+            <Text style={[S.tiny, { width: colWidths[0], padding: 2, textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000' }]}>{idx + 1}</Text>
+            <Text style={[S.tiny, { width: colWidths[1], padding: 2, borderRightWidth: 1, borderRightColor: '#000' }]}>{item.description}</Text>
+            <Text style={[S.tiny, { width: colWidths[2], padding: 2, textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000' }]}>{item.unit || '-'}</Text>
+            <Text style={[S.tiny, { width: colWidths[3], padding: 2, textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000' }]}>{item.batchNo || '-'}</Text>
+            <Text style={[S.tiny, { width: colWidths[4], padding: 2, textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000' }]}>{item.hsn || '-'}</Text>
+            <Text style={[S.tiny, { width: colWidths[5], padding: 2, textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000' }]}>{formatExpiry(item.expiryDate, item.expiryMode)}</Text>
+            <Text style={[S.tiny, { width: colWidths[6], padding: 2, textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000' }]}>{item.quantity}</Text>
+            <Text style={[S.tiny, { width: colWidths[7], padding: 2, textAlign: 'right', borderRightWidth: 1, borderRightColor: '#000' }]}>{item.unitPrice.toFixed(2)}</Text>
+            <Text style={[S.tiny, S.bold, { width: colWidths[8], padding: 2, textAlign: 'right' }]}>{item.total.toFixed(2)}</Text>
+          </View>
+        ))}
+        {/* Filler rows */}
+        {Array.from({ length: fillerCount }).map((_, i) => (
+          <View key={`f${i}`} style={{ flexDirection: 'row' }}>
+            {colWidths.map((w, ci) => (
+              <Text key={ci} style={[S.tiny, {
+                width: w, padding: 2,
+                borderRightWidth: ci < colWidths.length - 1 ? 1 : 0, borderRightColor: '#000',
+              }]}> </Text>
+            ))}
+          </View>
+        ))}
+        {/* Total footer */}
+        <View style={{ flexDirection: 'row', backgroundColor: '#f5f5f5', borderTopWidth: 1, borderTopColor: '#000' }}>
+          <Text style={[S.bold, S.tiny, { width: '77%', padding: 2, textAlign: 'right', borderRightWidth: 1, borderRightColor: '#000' }]}>Total</Text>
+          <Text style={[S.bold, S.tiny, { width: colWidths[6], padding: 2, textAlign: 'center', borderRightWidth: 1, borderRightColor: '#000' }]}>
+            {invoice.items.reduce((s: number, i: any) => s + i.quantity, 0)}
+          </Text>
+          <Text style={[S.tiny, { width: colWidths[7], padding: 2, borderRightWidth: 1, borderRightColor: '#000' }]} />
+          <Text style={[S.bold, S.tiny, { width: colWidths[8], padding: 2, textAlign: 'right' }]}>{subtotal.toFixed(2)}</Text>
+        </View>
+      </View>
+
+      {/* Bottom row: Terms (7/10) | Totals (3/10) */}
+      <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: '#000', borderTopWidth: 0, minHeight: 60 }}>
+        {/* Left: Terms + Amount in Words + Signatory */}
+        <View style={{ flexDirection: 'row', flex: 7, borderRightWidth: 1, borderRightColor: '#000', padding: 5, justifyContent: 'space-between', alignItems: 'end' }}>
+          <View style={{ flexDirection: 'column', justifyContent: 'space-between' }}>
+            {invoice.terms ? (
+              <>
+                <Text style={[S.bold, S.tiny, { textDecoration: 'underline', textTransform: 'uppercase', marginBottom: 2 }]}>Terms &amp; Conditions</Text>
+                {invoice.terms.split('\n').filter((t: string) => t.trim()).map((term: string, i: number) => (
+                  <Text key={i} style={[S.tiny, { lineHeight: 1.4 }]}>{term}</Text>
+                ))}
+              </>
+            ) : null}
+            <Text style={[S.tiny, { marginTop: 4 }]}>
+              <Text style={S.bold}>Amount in Words: </Text>
+              <Text style={{ fontStyle: 'italic' }}>{numberToWords(invoice.total)}</Text>
+            </Text>
+          </View>
+          {invoice.showSignatory ? (
+            <View style={{ alignItems: 'flex-end', marginTop: 4 }}>
+              <View style={{ alignItems: 'center', minWidth: 90 }}>
+                <Text style={[S.tiny, S.bold, { marginBottom: 2 }]}>For, {settings.companyName}</Text>
+                {invoice.useDigitalSignature && settings.signatureUrl ? (
+                  <Image src={settings.signatureUrl} style={{ width: 80, height: 22, objectFit: 'contain', marginBottom: 2 }} />
+                ) : (
+                  <View style={{ height: 22 }} />
+                )}
+                <View style={{ borderTopWidth: 1, borderTopColor: '#000', width: '100%', paddingTop: 2, alignItems: 'center' }}>
+                  <Text style={[S.tiny, S.bold, { textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 6 }]}>Authorised Signatory</Text>
+                </View>
+              </View>
+            </View>
+          ) : null}
+        </View>
+
+        {/* Right: Totals */}
+        <View style={{ flex: 3, flexDirection: 'column', justifyContent: 'space-between' }}>
+          <View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 3, borderBottomWidth: 1, borderBottomColor: '#aaa' }}>
+              <Text style={[S.bold, S.tiny]}>SUB TOTAL</Text>
+              <Text style={[S.bold, S.tiny]}>{subtotal.toFixed(2)}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 3, borderBottomWidth: 1, borderBottomColor: '#aaa' }}>
+              <Text style={[S.bold, S.tiny]}>DISCOUNT</Text>
+              <Text style={[S.bold, S.tiny, disc > 0 ? { color: '#aa0000' } : {}]}>
+                {disc > 0 ? `-${disc.toFixed(2)}` : '0.00'}
+              </Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 4, backgroundColor: '#000' }}>
+            <Text style={[S.bold, S.tiny, { color: '#fff', fontSize: 9 }]}>GRAND TOTAL</Text>
+            <Text style={[S.bold, { color: '#fff', fontSize: 9 }]}>{invoice.total.toFixed(2)}</Text>
+          </View>
+        </View>
+      </View>
+    </Page>
+  );
+};
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export async function buildInvoicePdfBuffer(invoice: any, settings: any): Promise<Buffer> {
@@ -361,6 +535,8 @@ export async function buildInvoicePdfBuffer(invoice: any, settings: any): Promis
     <Document>
       {safeInvoice.template === 'medical'
         ? <MedicalPDF invoice={safeInvoice} settings={settings} />
+        : safeInvoice.template === 'medical-landscape'
+        ? <MedicalLandscapePDF invoice={safeInvoice} settings={settings} />
         : <ModernPDF invoice={safeInvoice} settings={settings} />}
     </Document>
   );
