@@ -12,6 +12,7 @@ export interface Settings {
   companyTitleSize?: number; // font size override for company title on invoices
   defaultTerms?: string;     // default terms and conditions for all invoices
   gstNumber?: string;        // GSTIN for GST invoices
+  doctorRegistrationNo?: string; // Doctor/Medical registration number
 }
 
 export interface Product {
@@ -51,6 +52,8 @@ export interface Invoice {
   doctorName?: string;
   doctorLabel?: string;     // editable label for doctor field, e.g. "Doctor", "Referred By"
   dlNumbers?: string[];
+  doctorRegistrationNo?: string; // Doctor registration number (autofilled from settings)
+  gstNumber?: string;            // GST number (autofilled from settings)
   date: string;
   dueDate: string;
   discountPercentage: number;

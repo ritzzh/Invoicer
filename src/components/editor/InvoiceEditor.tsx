@@ -33,6 +33,8 @@ export const InvoiceEditor = ({
       doctorName: settings.userName || '',
       doctorLabel: 'Doctor',
       dlNumbers: settings.dlNumbers || ['', '', ''],
+      doctorRegistrationNo: (settings as any).doctorRegistrationNo || '',
+      gstNumber: (settings as any).gstNumber || '',
       date: format(new Date(), 'yyyy-MM-dd'),
       discountPercentage: 0,
       roundOff: 0,
@@ -253,6 +255,10 @@ export const InvoiceEditor = ({
                 <input placeholder="Client Phone" className="input" value={invoice.clientPhone} onChange={e => setInvoice({ ...invoice, clientPhone: e.target.value })} />
               </div>
             </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-zinc-400 uppercase">Address</label>
+              <textarea placeholder="Client Address" className="input h-16" value={invoice.clientAddress} onChange={e => setInvoice({ ...invoice, clientAddress: e.target.value })} />
+            </div>
             {/* Doctor row — label is editable */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -263,6 +269,10 @@ export const InvoiceEditor = ({
                 <label className="text-[10px] font-bold text-zinc-400 uppercase">Doctor Name <span className="normal-case text-zinc-300">(optional)</span></label>
                 <input placeholder="Leave blank to hide" className="input" value={(invoice as any).doctorName || ''} onChange={e => setInvoice({ ...invoice, doctorName: e.target.value } as any)} />
               </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-zinc-400 uppercase">Doctor Registration No. <span className="normal-case text-zinc-300">(from settings)</span></label>
+              <input placeholder="Leave blank to hide" className="input" value={(invoice as any).doctorRegistrationNo || ''} onChange={e => setInvoice({ ...invoice, doctorRegistrationNo: e.target.value } as any)} />
             </div>
           </div>
 

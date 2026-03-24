@@ -115,6 +115,8 @@ export const useApp = () => {
       signatureUrl:     d.signatureUrl     || '',
       companyTitleSize: d.companyTitleSize  || undefined,
       defaultTerms:     d.defaultTerms      || '',
+      doctorRegistrationNo: d.doctorRegistrationNo || '',
+      gstNumber:        d.gstNumber         || '',
     }));
 
     safe('/api/products', (d) => setInventory(d.map((p: any) => ({

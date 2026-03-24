@@ -134,6 +134,8 @@ const userMigrations = [
   { name: 'signatureUrl', sql: "ALTER TABLE users ADD COLUMN signatureUrl TEXT" },
   { name: 'companyTitleSize', sql: "ALTER TABLE users ADD COLUMN companyTitleSize INTEGER DEFAULT 0" },
   { name: 'defaultTerms', sql: "ALTER TABLE users ADD COLUMN defaultTerms TEXT" },
+  { name: 'doctorRegistrationNo', sql: "ALTER TABLE users ADD COLUMN doctorRegistrationNo TEXT" },
+  { name: 'gstNumber', sql: "ALTER TABLE users ADD COLUMN gstNumber TEXT" },
 ];
 
 for (const m of userMigrations) {
@@ -160,6 +162,9 @@ const invoiceMigrations = [
   { name: 'dlNumbers', sql: "ALTER TABLE invoices ADD COLUMN dlNumbers TEXT" },
   { name: 'useDigitalSignature', sql: "ALTER TABLE invoices ADD COLUMN useDigitalSignature INTEGER DEFAULT 0" },
   { name: 'companyTitleSize', sql: "ALTER TABLE invoices ADD COLUMN companyTitleSize INTEGER DEFAULT 0" },
+  { name: 'clientAddress', sql: "ALTER TABLE invoices ADD COLUMN clientAddress TEXT" },
+  { name: 'doctorRegistrationNo', sql: "ALTER TABLE invoices ADD COLUMN doctorRegistrationNo TEXT" },
+  { name: 'gstNumber', sql: "ALTER TABLE invoices ADD COLUMN gstNumber TEXT" },
 ];
 
 for (const m of invoiceMigrations) {
@@ -318,11 +323,13 @@ async function startServer() {
     safeUser.signatureUrl = user.signatureUrl || '';
     safeUser.companyTitleSize = user.companyTitleSize || 0;
     safeUser.defaultTerms = user.defaultTerms || '';
+    safeUser.doctorRegistrationNo = user.doctorRegistrationNo || '';
+    safeUser.gstNumber = user.gstNumber || '';
     res.json(safeUser);
   });
 
   app.post("/api/settings", authenticate, (req: any, res) => {
-    const { companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency, dlNumbers, userName, emailAppPassword, signatureUrl, companyTitleSize, defaultTerms } = req.body;
+    const { companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency, dlNumbers, userName, emailAppPassword, signatureUrl, companyTitleSize, defaultTerms, doctorRegistrationNo, gstNumber } = req.body;
     // Only update emailAppPassword if a non-empty value is provided
     if (emailAppPassword && emailAppPassword.trim()) {
       db.prepare(`UPDATE users SET emailAppPassword = ? WHERE id = ?`).run(emailAppPassword.trim(), req.userId);
@@ -332,11 +339,12 @@ async function startServer() {
         companyName = ?, companyAddress = ?, companyEmail = ?, 
         companyPhone = ?, companyWebsite = ?, logoUrl = ?, currency = ?,
         dlNumbers = ?, userName = ?, signatureUrl = ?, companyTitleSize = ?,
-        defaultTerms = ?
+        defaultTerms = ?, doctorRegistrationNo = ?, gstNumber = ?
       WHERE id = ?
     `).run(companyName, companyAddress, companyEmail, companyPhone, companyWebsite, logoUrl, currency,
       dlNumbers ? JSON.stringify(dlNumbers) : null, userName || null,
-      signatureUrl || null, companyTitleSize || 0, defaultTerms || null, req.userId);
+      signatureUrl || null, companyTitleSize || 0, defaultTerms || null,
+      doctorRegistrationNo || null, gstNumber || null, req.userId);
     res.json({ success: true });
   });
 
@@ -490,7 +498,7 @@ async function startServer() {
   app.post("/api/invoices", authenticate, (req: any, res) => {
     const { 
       invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel,
-      doctorName, doctorLabel, dlNumbers,
+      doctorName, doctorLabel, dlNumbers, doctorRegistrationNo, gstNumber,
       date, dueDate, discountPercentage, 
       roundOff, total, balanceDue, items, template, themeColor, terms, showSignatory,
       useDigitalSignature, companyTitleSize
@@ -500,15 +508,16 @@ async function startServer() {
       const result = db.prepare(`
         INSERT INTO invoices (
           userId, invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel,
-          doctorName, doctorLabel, dlNumbers,
+          doctorName, doctorLabel, dlNumbers, doctorRegistrationNo, gstNumber,
           date, dueDate, discountPercentage, 
           roundOff, total, balanceDue, template, themeColor, terms, showSignatory,
           useDigitalSignature, companyTitleSize
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         req.userId, invoiceNumber, clientName, clientEmail, clientPhone || null, clientAddress,
         clientLabel || 'Billed To', doctorName || null, doctorLabel || 'Doctor',
         dlNumbers ? JSON.stringify(dlNumbers) : null,
+        doctorRegistrationNo || null, gstNumber || null,
         date, dueDate || null, discountPercentage, 
         roundOff, total, balanceDue || 0, template, themeColor || '#000000', terms, showSignatory ? 1 : 0,
         useDigitalSignature ? 1 : 0, companyTitleSize || 0
@@ -535,7 +544,7 @@ async function startServer() {
   app.put("/api/invoices/:id", authenticate, (req: any, res) => {
     const { 
       invoiceNumber, clientName, clientEmail, clientPhone, clientAddress, clientLabel,
-      doctorName, doctorLabel, dlNumbers,
+      doctorName, doctorLabel, dlNumbers, doctorRegistrationNo, gstNumber,
       date, dueDate, discountPercentage, 
       roundOff, total, balanceDue, items, template, themeColor, terms, showSignatory,
       useDigitalSignature, companyTitleSize
@@ -546,6 +555,7 @@ async function startServer() {
         UPDATE invoices SET 
           invoiceNumber = ?, clientName = ?, clientEmail = ?, clientPhone = ?, clientAddress = ?,
           clientLabel = ?, doctorName = ?, doctorLabel = ?, dlNumbers = ?,
+          doctorRegistrationNo = ?, gstNumber = ?,
           date = ?, dueDate = ?, discountPercentage = ?, 
           roundOff = ?, total = ?, balanceDue = ?, template = ?, themeColor = ?, terms = ?, showSignatory = ?,
           useDigitalSignature = ?, companyTitleSize = ?
@@ -554,6 +564,7 @@ async function startServer() {
         invoiceNumber, clientName, clientEmail, clientPhone || null, clientAddress,
         clientLabel || 'Billed To', doctorName || null, doctorLabel || 'Doctor',
         dlNumbers ? JSON.stringify(dlNumbers) : null,
+        doctorRegistrationNo || null, gstNumber || null,
         date, dueDate || null, discountPercentage, 
         roundOff, total, balanceDue || 0, template, themeColor || '#000000', terms, showSignatory ? 1 : 0,
         useDigitalSignature ? 1 : 0, companyTitleSize || 0,

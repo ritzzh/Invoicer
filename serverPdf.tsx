@@ -407,9 +407,11 @@ const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: an
       <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: '#000', borderTopWidth: 0 }}>
         <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: '#000', padding: 3 }}>
           <Text style={[S.tiny, S.bold]}>
+            GSTIN: {gstNumber}
+          </Text> 
+          <Text style={[S.tiny, S.bold]}>
             DL: {dlNumbers.join(', ')}
           </Text>          
-          {gstNumber ? <Text style={[S.tiny, S.bold]}>GSTIN: {gstNumber}</Text> : null}
         </View>
         <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: '#000', padding: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5' }}>
           <Text style={[S.bold, { fontSize: 11, letterSpacing: 3, textTransform: 'uppercase' }]}>GST INVOICE</Text>

@@ -155,6 +155,12 @@ export const SettingsView = ({ settings, onSave }: SettingsViewProps) => {
           </div>
           <div className="space-y-2">
             <label className="text-xs font-bold text-zinc-400 uppercase">
+              Doctor Registration No. <span className="normal-case font-normal text-zinc-300">(autofills on invoices)</span>
+            </label>
+            <input className="input" placeholder="e.g. MH-12345" value={(formData as any).doctorRegistrationNo || ''} onChange={e => setFormData({ ...formData, doctorRegistrationNo: e.target.value } as any)} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-400 uppercase">
               DL Numbers <span className="normal-case font-normal text-zinc-300">(Drug License)</span>
             </label>
             <div className="space-y-2">

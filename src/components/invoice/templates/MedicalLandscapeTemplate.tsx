@@ -125,7 +125,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
             )}
             <div style={{ marginBottom: '2px' }}>
               <span style={{ fontWeight: 700 }}>Dr Reg No.: </span>
-              <span style={{ fontWeight: 600 }}>{''}</span>
+              <span style={{ fontWeight: 600 }}>{invoice.doctorRegistrationNo}</span>
             </div>
           </div>
         </div>
@@ -133,7 +133,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
         {/* ROW 2: 3-column strip — DL/GSTIN | GST INVOICE | Invoice No/Date */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', border: B, borderTop: 'none' }}>
           <div style={{ display: 'flex',flexDirection: 'column' ,borderRight: B, padding: '3px 5px', fontSize: '7.5px', fontWeight: 700, lineHeight: 1.5 }}>
-            <span>GSTIN: {gstNumber && <div>{gstNumber}</div>}</span>
+            <span>GSTIN: {gstNumber} </span>
             <span>DL: {dlNumbers.join(', ')}</span>
           </div>
           <div style={{
