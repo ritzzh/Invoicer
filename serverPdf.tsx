@@ -482,32 +482,42 @@ const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: an
 
       <View style={{ borderWidth: 1, borderColor: '#000', borderTopWidth: 0 }}>
 
-        <View style={{ flexDirection: 'row' }}>
+      <View style={{ flexDirection: 'row' }}>
 
-          {/* LEFT GST STRIP */}
-          <View style={{
-            flex: 7,
-            borderRightWidth: 1,
-            borderRightColor: '#000',
-            borderBottomWidth: 1,
-            borderBottomColor: '#000',
-            paddingVertical: 3,
-            paddingHorizontal: 5,
-            backgroundColor: '#f5f5f5',
-            justifyContent: 'center'
-          }}>
-            <Text style={[S.tiny, S.bold]}>
-              GST {baseAmount.toFixed(2)} × 2.5% + 2.5% = {sgst.toFixed(2)} SGST + {cgst.toFixed(2)} CGST
-            </Text>
-          </View>
-
-          {/* RIGHT SIDE — ADD MATCHING BOTTOM BORDER */}
-          <View style={{
-            flex: 3,
-            borderBottomWidth: 1,
-            borderBottomColor: '#000'
-          }} />
+        {/* LEFT GST STRIP */}
+        <View style={{
+          flex: 7,
+          borderRightWidth: 1,
+          borderRightColor: '#000',
+          borderBottomWidth: 1,
+          borderBottomColor: '#000',
+          paddingVertical: 3,
+          paddingHorizontal: 5,
+          backgroundColor: '#f5f5f5',
+          justifyContent: 'center'
+        }}>
+          <Text style={[S.tiny, S.bold]}>
+            GST {baseAmount.toFixed(2)} × 2.5% + 2.5% = {sgst.toFixed(2)} SGST + {cgst.toFixed(2)} CGST
+          </Text>
         </View>
+
+        {/* RIGHT SIDE → START TOTALS HERE */}
+        <View style={{
+          flex: 3,
+          borderBottomWidth: 1,
+          borderBottomColor: '#000'
+        }}>
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            padding: 3
+          }}>
+            <Text style={[S.bold, S.tiny]}>SUB TOTAL</Text>
+            <Text style={[S.bold, S.tiny]}>{subtotal.toFixed(2)}</Text>
+          </View>
+        </View>
+
+      </View>
 
         {/* MAIN CONTENT ROW */}
         <View style={{ flexDirection: 'row', minHeight: 60 }}>
@@ -589,16 +599,6 @@ const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: an
             justifyContent: 'space-between'
           }}>
             <View>
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                padding: 3,
-                borderBottomWidth: 1,
-                borderBottomColor: '#aaa'
-              }}>
-                <Text style={[S.bold, S.tiny]}>SUB TOTAL</Text>
-                <Text style={[S.bold, S.tiny]}>{subtotal.toFixed(2)}</Text>
-              </View>
 
               <View style={{
                 flexDirection: 'row',
