@@ -56,15 +56,15 @@ function dynFontSize(name: string, override?: number): number {
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
 const S = StyleSheet.create({
-  page:   { fontFamily: 'Helvetica', fontSize: 10, paddingHorizontal: 20, paddingVertical: 22, backgroundColor: '#ffffff' },
-  row:    { flexDirection: 'row' },
-  bold:   { fontFamily: 'Helvetica-Bold' },
-  right:  { textAlign: 'right' },
+  page: { fontFamily: 'Helvetica', fontSize: 10, paddingHorizontal: 20, paddingVertical: 22, backgroundColor: '#ffffff' },
+  row: { flexDirection: 'row' },
+  bold: { fontFamily: 'Helvetica-Bold' },
+  right: { textAlign: 'right' },
   center: { textAlign: 'center' },
-  muted:  { color: '#000000' },
-  tiny:   { fontSize: 8 },
-  small:  { fontSize: 9 },
-  big: {fontSize: 10}
+  muted: { color: '#000000' },
+  tiny: { fontSize: 8 },
+  small: { fontSize: 9 },
+  big: { fontSize: 10 }
 });
 
 // ── Shared sub-components ─────────────────────────────────────────────────────
@@ -355,18 +355,29 @@ const ModernPDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
 // ── Medical Landscape Template (PDF) ─────────────────────────────────────────
 
 const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: any }) => {
-  const subtotal       = invoice.items.reduce((s: number, i: any) => s + i.total, 0);
-  const disc           = subtotal * (invoice.discountPercentage / 100);
-  const dlNumbers      = ((invoice.dlNumbers?.length ? invoice.dlNumbers : settings.dlNumbers) || []).filter(Boolean);
-  const doctorLabel    = invoice.doctorLabel || 'Dr Name';
-  const gstNumber      = settings.gstNumber || '';
-  const dateFormatted  = invoice.date ? invoice.date.split('-').reverse().join('-') : '';
+  const subtotal = invoice.items.reduce((s: number, i: any) => s + i.total, 0);
+  const disc = subtotal * (invoice.discountPercentage / 100);
+  const dlNumbers = ((invoice.dlNumbers?.length ? invoice.dlNumbers : settings.dlNumbers) || []).filter(Boolean);
+  const doctorLabel = invoice.doctorLabel || 'Dr Name';
+  const gstNumber = settings.gstNumber || '';
+  const dateFormatted = invoice.date ? invoice.date.split('-').reverse().join('-') : '';
+  const GST_RATE = 5;
+
+  const round = (n: number) => Number(n.toFixed(2));
+
+  const total = invoice.total;
+
+  const baseAmount = round(total / (1 + GST_RATE / 100));
+  const gstAmount = round(total - baseAmount);
+
+  const sgst = round(gstAmount / 2);
+  const cgst = round(gstAmount - sgst);
 
   const bdr = { borderWidth: 1, borderColor: '#000' } as const;
   const col = { borderRightWidth: 1, borderRightColor: '#000' } as const;
 
   const colWidths = ['5%', '36%', '8%', '9%', '9%', '10%', '7%', '8%', '8%'];
-  const headers   = ['SN.', 'PRODUCT NAME', 'PACK', 'BATCH', 'HSN', 'EXP.', 'QTY', 'M.R.P.', 'AMOUNT'];
+  const headers = ['SN.', 'PRODUCT NAME', 'PACK', 'BATCH', 'HSN', 'EXP.', 'QTY', 'M.R.P.', 'AMOUNT'];
 
   const MIN_ROWS = 15;
   const fillerCount = Math.max(0, MIN_ROWS - invoice.items.length);
@@ -408,15 +419,15 @@ const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: an
         <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: '#000', padding: 3 }}>
           <Text style={[S.tiny, S.bold]}>
             GSTIN: {gstNumber}
-          </Text> 
+          </Text>
           <Text style={[S.tiny, S.bold]}>
             DL: {dlNumbers.join(', ')}
-          </Text>          
+          </Text>
         </View>
         <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: '#000', padding: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5' }}>
           <Text style={[S.bold, { fontSize: 11, letterSpacing: 3, textTransform: 'uppercase' }]}>GST INVOICE</Text>
         </View>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between',flex: 1, padding: 3 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', flex: 1, padding: 3 }}>
           <Text style={S.tiny}><Text style={S.bold}>Invoice No.: </Text>{invoice.invoiceNumber}</Text>
           <Text style={S.tiny}><Text style={S.bold}>Date: </Text>{dateFormatted}</Text>
         </View>
@@ -469,59 +480,155 @@ const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: an
         </View>
       </View>
 
-      {/* Bottom row: Terms (7/10) | Totals (3/10) */}
-      <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: '#000', borderTopWidth: 0, minHeight: 60 }}>
-        {/* Left: Terms + Amount in Words + Signatory */}
-        <View style={{ flexDirection: 'row', flex: 7, borderRightWidth: 1, borderRightColor: '#000', padding: 5, justifyContent: 'space-between', alignItems: 'end' }}>
-          <View style={{ flexDirection: 'column', justifyContent: 'space-between' }}>
-            {invoice.terms ? (
-              <>
-                <Text style={[S.bold, S.tiny, { textDecoration: 'underline', textTransform: 'uppercase', marginBottom: 2 }]}>Terms &amp; Conditions</Text>
-                {invoice.terms.split('\n').filter((t: string) => t.trim()).map((term: string, i: number) => (
-                  <Text key={i} style={[S.tiny, { lineHeight: 1.4 }]}>{term}</Text>
-                ))}
-              </>
-            ) : null}
-            <Text style={[S.tiny, { marginTop: 4 }]}>
-              <Text style={S.bold}>Amount in Words: </Text>
-              <Text style={{ fontStyle: 'italic' }}>{numberToWords(invoice.total)}</Text>
+      <View style={{ borderWidth: 1, borderColor: '#000', borderTopWidth: 0 }}>
+
+        <View style={{ flexDirection: 'row' }}>
+
+          {/* LEFT GST STRIP */}
+          <View style={{
+            flex: 7,
+            borderRightWidth: 1,
+            borderRightColor: '#000',
+            borderBottomWidth: 1,
+            borderBottomColor: '#000',
+            paddingVertical: 3,
+            paddingHorizontal: 5,
+            backgroundColor: '#f5f5f5',
+            justifyContent: 'center'
+          }}>
+            <Text style={[S.tiny, S.bold]}>
+              GST {baseAmount.toFixed(2)} × 2.5% + 2.5% = {sgst.toFixed(2)} SGST + {cgst.toFixed(2)} CGST
             </Text>
           </View>
-          {invoice.showSignatory ? (
-            <View style={{ alignItems: 'flex-end', marginTop: 4 }}>
-              <View style={{ alignItems: 'center', minWidth: 90 }}>
-                <Text style={[S.tiny, S.bold, { marginBottom: 2 }]}>For, {settings.companyName}</Text>
-                {invoice.useDigitalSignature && settings.signatureUrl ? (
-                  <Image src={settings.signatureUrl} style={{ width: 80, height: 22, objectFit: 'contain', marginBottom: 2 }} />
-                ) : (
-                  <View style={{ height: 22 }} />
-                )}
-                <View style={{ borderTopWidth: 1, borderTopColor: '#000', width: '100%', paddingTop: 2, alignItems: 'center' }}>
-                  <Text style={[S.tiny, S.bold, { textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 6 }]}>Authorised Signatory</Text>
-                </View>
-              </View>
-            </View>
-          ) : null}
+
+          {/* RIGHT SIDE — ADD MATCHING BOTTOM BORDER */}
+          <View style={{
+            flex: 3,
+            borderBottomWidth: 1,
+            borderBottomColor: '#000'
+          }} />
         </View>
 
-        {/* Right: Totals */}
-        <View style={{ flex: 3, flexDirection: 'column', justifyContent: 'space-between' }}>
-          <View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 3, borderBottomWidth: 1, borderBottomColor: '#aaa' }}>
-              <Text style={[S.bold, S.tiny]}>SUB TOTAL</Text>
-              <Text style={[S.bold, S.tiny]}>{subtotal.toFixed(2)}</Text>
+        {/* MAIN CONTENT ROW */}
+        <View style={{ flexDirection: 'row', minHeight: 60 }}>
+
+          {/* LEFT: Terms + Amount in Words + Signatory */}
+          <View style={{
+            flexDirection: 'row',
+            flex: 7,
+            borderRightWidth: 1,
+            borderRightColor: '#000',
+            padding: 5,
+            justifyContent: 'space-between',
+            alignItems: 'end'
+          }}>
+            <View style={{ flexDirection: 'column', justifyContent: 'space-between' }}>
+              {invoice.terms ? (
+                <>
+                  <Text style={[S.bold, S.tiny, {
+                    textDecoration: 'underline',
+                    textTransform: 'uppercase',
+                    marginBottom: 2
+                  }]}>
+                    Terms &amp; Conditions
+                  </Text>
+                  {invoice.terms.split('\n').filter((t: string) => t.trim()).map((term: string, i: number) => (
+                    <Text key={i} style={[S.tiny, { lineHeight: 1.4 }]}>{term}</Text>
+                  ))}
+                </>
+              ) : null}
+
+              <Text style={[S.tiny, { marginTop: 4 }]}>
+                <Text style={S.bold}>Amount in Words: </Text>
+                <Text style={{ fontStyle: 'italic' }}>
+                  {numberToWords(invoice.total)}
+                </Text>
+              </Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 3, borderBottomWidth: 1, borderBottomColor: '#aaa' }}>
-              <Text style={[S.bold, S.tiny]}>DISCOUNT</Text>
-              <Text style={[S.bold, S.tiny, disc > 0 ? { color: '#aa0000' } : {}]}>
-                {disc > 0 ? `-${disc.toFixed(2)}` : '0.00'}
+
+            {invoice.showSignatory ? (
+              <View style={{ alignItems: 'flex-end', marginTop: 4 }}>
+                <View style={{ alignItems: 'center', minWidth: 90 }}>
+                  <Text style={[S.tiny, S.bold, { marginBottom: 2 }]}>
+                    For, {settings.companyName}
+                  </Text>
+
+                  {invoice.useDigitalSignature && settings.signatureUrl ? (
+                    <Image
+                      src={settings.signatureUrl}
+                      style={{ width: 80, height: 22, objectFit: 'contain', marginBottom: 2 }}
+                    />
+                  ) : (
+                    <View style={{ height: 22 }} />
+                  )}
+
+                  <View style={{
+                    borderTopWidth: 1,
+                    borderTopColor: '#000',
+                    width: '100%',
+                    paddingTop: 2,
+                    alignItems: 'center'
+                  }}>
+                    <Text style={[S.tiny, S.bold, {
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                      fontSize: 6
+                    }]}>
+                      Authorised Signatory
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ) : null}
+          </View>
+
+          {/* RIGHT: Totals */}
+          <View style={{
+            flex: 3,
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            <View>
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                padding: 3,
+                borderBottomWidth: 1,
+                borderBottomColor: '#aaa'
+              }}>
+                <Text style={[S.bold, S.tiny]}>SUB TOTAL</Text>
+                <Text style={[S.bold, S.tiny]}>{subtotal.toFixed(2)}</Text>
+              </View>
+
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                padding: 3,
+                borderBottomWidth: 1,
+                borderBottomColor: '#aaa'
+              }}>
+                <Text style={[S.bold, S.tiny]}>DISCOUNT</Text>
+                <Text style={[S.bold, S.tiny, disc > 0 ? { color: '#aa0000' } : {}]}>
+                  {disc > 0 ? `-${disc.toFixed(2)}` : '0.00'}
+                </Text>
+              </View>
+            </View>
+
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              padding: 4,
+              backgroundColor: '#000'
+            }}>
+              <Text style={[S.bold, S.tiny, { color: '#fff', fontSize: 9 }]}>
+                GRAND TOTAL
+              </Text>
+              <Text style={[S.bold, { color: '#fff', fontSize: 9 }]}>
+                {invoice.total.toFixed(2)}
               </Text>
             </View>
           </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 4, backgroundColor: '#000' }}>
-            <Text style={[S.bold, S.tiny, { color: '#fff', fontSize: 9 }]}>GRAND TOTAL</Text>
-            <Text style={[S.bold, { color: '#fff', fontSize: 9 }]}>{invoice.total.toFixed(2)}</Text>
-          </View>
+
         </View>
       </View>
     </Page>
@@ -538,8 +645,8 @@ export async function buildInvoicePdfBuffer(invoice: any, settings: any): Promis
       {safeInvoice.template === 'medical'
         ? <MedicalPDF invoice={safeInvoice} settings={settings} />
         : safeInvoice.template === 'medical-landscape'
-        ? <MedicalLandscapePDF invoice={safeInvoice} settings={settings} />
-        : <ModernPDF invoice={safeInvoice} settings={settings} />}
+          ? <MedicalLandscapePDF invoice={safeInvoice} settings={settings} />
+          : <ModernPDF invoice={safeInvoice} settings={settings} />}
     </Document>
   );
   const blob = await pdf(doc).toBlob();

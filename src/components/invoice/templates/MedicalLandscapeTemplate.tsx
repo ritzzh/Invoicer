@@ -54,6 +54,15 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
   const doctorLabel = (invoice as any).doctorLabel || 'Dr Name';
   const gstNumber = (settings as any).gstNumber || '';
   const dateFormatted = invoice.date ? invoice.date.split('-').reverse().join('-') : '';
+  const GST_RATE = 5; // 2.5% SGST + 2.5% CGST
+
+  const round = (n: number) => Number(n.toFixed(2));
+  const total = invoice.total;
+  const baseAmount = round(total / (1 + GST_RATE / 100));
+  const gstAmount = round(total - baseAmount);
+  const sgst = round(gstAmount / 2);
+  const cgst = round(gstAmount - sgst); // ensures no rounding mismatch
+  const titleSize = (invoice as any).companyTitleSize || settings.companyTitleSize;
 
   // Side-only border style for data cells
   const sideBorder: React.CSSProperties = {
@@ -84,12 +93,11 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           flexDirection: 'column',
         }}
       >
-        {/* ROW 1: Company (left) | Patient/Doctor/Invoice (right) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: B }}>
           <div style={{ borderRight: B, padding: '4px 6px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{
               fontWeight: 900,
-              fontSize: 'clamp(0.72rem, 2.2vw, 1rem)',
+              fontSize: titleSize && titleSize > 0 ? `${titleSize}px` : 'clamp(0.72rem, 2.2vw, 1rem)',
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
               lineHeight: 1.2,
@@ -132,7 +140,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
 
         {/* ROW 2: 3-column strip — DL/GSTIN | GST INVOICE | Invoice No/Date */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', border: B, borderTop: 'none' }}>
-          <div style={{ display: 'flex',flexDirection: 'column' ,borderRight: B, padding: '3px 5px', fontSize: '7.5px', fontWeight: 700, lineHeight: 1.5 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', borderRight: B, padding: '3px 5px', fontSize: '7.5px', fontWeight: 700, lineHeight: 1.5 }}>
             <span>GSTIN: {gstNumber} </span>
             <span>DL: {dlNumbers.join(', ')}</span>
           </div>
@@ -150,7 +158,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           }}>
             GST INVOICE
           </div>
-          <div style={{ display: 'flex',flexDirection: 'row', justifyContent: 'space-between' ,padding: '3px 5px', fontSize: '7.5px', lineHeight: 1.6 }}>
+          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', padding: '3px 5px', fontSize: '7.5px', lineHeight: 1.6 }}>
             <div>
               <span style={{ fontWeight: 700 }}>Invoice No.: </span>
               <span style={{ fontWeight: 900 }}>{invoice.invoiceNumber}</span>
@@ -162,7 +170,6 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           </div>
         </div>
 
-        {/* ITEMS TABLE — side borders only on data cells, MIN_ROWS always */}
         <div>
           <table style={{
             borderCollapse: 'collapse',
@@ -202,7 +209,6 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
                   </td>
                 </tr>
               ))}
-              {/* Filler rows to reach MIN_ROWS */}
               {Array.from({ length: fillerCount }).map((_, i) => (
                 <tr key={`f${i}`}>
                   <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '8px' }}>&nbsp;</td>
@@ -237,12 +243,25 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           border: B,
           borderTop: 'none',
           display: 'grid',
+          gridTemplateRows: 'auto 1fr',
           gridTemplateColumns: '7fr 3fr',
           minHeight: '26mm',
         }}>
-          {/* LEFT: Terms + Amount in Words + Signatory */}
+          <div
+            style={{
+              gridColumn: '1 / 2',   // only left section (7fr)
+              borderRight: B,
+              borderBottom: B,
+              padding: '3px 6px',
+              fontSize: '8px',
+              fontWeight: 700,
+            }}
+          >
+            GST {baseAmount.toFixed(2)} × 2.5% + 2.5% = {sgst.toFixed(2)} SGST + {cgst.toFixed(2)} CGST
+          </div>
           <div style={{
             borderRight: B,
+            gridRow: '2',
             display: 'flex',
             flexDirection: 'row',
             justifyContent: 'space-between',
@@ -294,7 +313,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           </div>
 
           {/* RIGHT: Sub Total / Discount / Grand Total */}
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ gridRow: '1 / 3', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
                 <span>SUB TOTAL</span>
