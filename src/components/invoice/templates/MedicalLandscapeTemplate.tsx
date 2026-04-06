@@ -15,10 +15,10 @@ const TableHead = () => (
   <thead>
     <tr style={{ backgroundColor: '#f2f2f2' }}>
       {([
-        ['SN.', '18px'],
+        ['SN.', '25px'],
         ['PRODUCT NAME', 'auto'],
-        ['PACK', '55px'],
-        ['BATCH', '55px'],
+        ['PACK', '75px'],
+        ['BATCH', '75px'],
         ['HSN', '55px'],
         ['EXP.', '55px'],
         ['QTY', '35px'],
@@ -63,6 +63,9 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
   const sgst = round(gstAmount / 2);
   const cgst = round(gstAmount - sgst); // ensures no rounding mismatch
   const titleSize = (invoice as any).companyTitleSize || settings.companyTitleSize;
+  const originalTaxable = round(subtotal - discountAmount);
+  const roundedTaxable = Math.round(originalTaxable);
+  const roundOff = round(roundedTaxable - originalTaxable);
 
   // Side-only border style for data cells
   const sideBorder: React.CSSProperties = {
@@ -151,7 +154,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
             justifyContent: 'center',
             padding: '3px 4px',
             fontWeight: 900,
-            fontSize: '11px',
+            fontSize: '20px',
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
             backgroundColor: '#f5f5f5',
@@ -282,8 +285,8 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
                 </>
               )}
               <div style={{ marginTop: '4px' }}>
-                <span style={{ fontSize: '7.5px', fontWeight: 700, textTransform: 'uppercase' }}>Amount in Words: </span>
-                <span style={{ fontSize: '8px', fontWeight: 900, fontStyle: 'italic' }}>{numberToWords(invoice.total)}</span>
+                <span style={{ fontSize: '6.5px', fontWeight: 700, textTransform: 'uppercase' }}>Amount in Words: </span>
+                <span style={{ fontSize: '6px', fontWeight: 900, fontStyle: 'italic' }}>{numberToWords(invoice.total)}</span>
               </div>
             </div>
 
@@ -315,14 +318,32 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           {/* RIGHT: Sub Total / Discount / Grand Total */}
           <div style={{ gridRow: '1 / 3', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
                 <span>SUB TOTAL</span>
                 <span>{subtotal.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
-                <span>DISCOUNT</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
+                <span>DISCOUNT ({invoice.discountPercentage}%)</span>
                 <span style={{ color: discountAmount > 0 ? '#aa0000' : '#000' }}>
                   {discountAmount > 0 ? `-${discountAmount.toFixed(2)}` : '0.00'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
+                <span>SGST 2.5%</span>
+                <span style={{ color: discountAmount > 0 ? '#aa0000' : '#000' }}>
+                  {sgst.toFixed(2)}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
+                <span>CGST 2.5%</span>
+                <span style={{ color: discountAmount > 0 ? '#aa0000' : '#000' }}>
+                  {cgst.toFixed(2)}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
+                <span>ROUNDOFF</span>
+                <span style={{ color: discountAmount > 0 ? '#aa0000' : '#000' }}>
+                  {roundOff.toFixed(2)}
                 </span>
               </div>
             </div>

@@ -373,10 +373,14 @@ const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: an
   const sgst = round(gstAmount / 2);
   const cgst = round(gstAmount - sgst);
 
+  const originalTaxable = round(subtotal - disc);
+  const roundedTaxable = Math.round(originalTaxable);
+  const roundOff = round(roundedTaxable - originalTaxable);
+
   const bdr = { borderWidth: 1, borderColor: '#000' } as const;
   const col = { borderRightWidth: 1, borderRightColor: '#000' } as const;
 
-  const colWidths = ['5%', '36%', '8%', '9%', '9%', '10%', '7%', '8%', '8%'];
+  const colWidths = ['8%', '34%', '8%', '9%', '8%', '10%', '7%', '8%', '8%'];
   const headers = ['SN.', 'PRODUCT NAME', 'PACK', 'BATCH', 'HSN', 'EXP.', 'QTY', 'M.R.P.', 'AMOUNT'];
 
   const MIN_ROWS = 15;
@@ -425,7 +429,7 @@ const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: an
           </Text>
         </View>
         <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: '#000', padding: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5' }}>
-          <Text style={[S.bold, { fontSize: 11, letterSpacing: 3, textTransform: 'uppercase' }]}>GST INVOICE</Text>
+          <Text style={[S.bold, { fontSize: 16, letterSpacing: 3, textTransform: 'uppercase' }]}>GST INVOICE</Text>
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', flex: 1, padding: 3 }}>
           <Text style={S.tiny}><Text style={S.bold}>Invoice No.: </Text>{invoice.invoiceNumber}</Text>
@@ -549,8 +553,8 @@ const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: an
               ) : null}
 
               <Text style={[S.tiny, { marginTop: 4 }]}>
-                <Text style={S.bold}>Amount in Words: </Text>
-                <Text style={{ fontStyle: 'italic' }}>
+                <Text style={{...S.bold, fontSize: 9}}>Amount in Words: </Text>
+                <Text style={{ fontStyle: 'italic', fontSize: 9 }}>
                   {numberToWords(invoice.total)}
                 </Text>
               </Text>
@@ -607,9 +611,45 @@ const MedicalLandscapePDF = ({ invoice, settings }: { invoice: any; settings: an
                 borderBottomWidth: 1,
                 borderBottomColor: '#aaa'
               }}>
-                <Text style={[S.bold, S.tiny]}>DISCOUNT</Text>
+                <Text style={[S.bold, S.tiny]}>DISCOUNT {invoice.discountPercentage}%</Text>
                 <Text style={[S.bold, S.tiny, disc > 0 ? { color: '#aa0000' } : {}]}>
                   {disc > 0 ? `-${disc.toFixed(2)}` : '0.00'}
+                </Text>
+              </View>
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                padding: 3,
+                borderBottomWidth: 1,
+                borderBottomColor: '#aaa'
+              }}>
+                <Text style={[S.bold, S.tiny]}>SGST 2.5%</Text>
+                <Text style={[S.bold, S.tiny, disc > 0 ? { color: '#aa0000' } : {}]}>
+                  {sgst}
+                </Text>
+              </View>
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                padding: 3,
+                borderBottomWidth: 1,
+                borderBottomColor: '#aaa'
+              }}>
+                <Text style={[S.bold, S.tiny]}>CGST 2.5%</Text>
+                <Text style={[S.bold, S.tiny, disc > 0 ? { color: '#aa0000' } : {}]}>
+                  {cgst}
+                </Text>
+              </View>
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                padding: 3,
+                borderBottomWidth: 1,
+                borderBottomColor: '#aaa'
+              }}>
+                <Text style={[S.bold, S.tiny]}>ROUNDOFF</Text>
+                <Text style={[S.bold, S.tiny, disc > 0 ? { color: '#aa0000' } : {}]}>
+                  {roundOff}
                 </Text>
               </View>
             </View>
