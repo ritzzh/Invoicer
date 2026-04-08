@@ -41,7 +41,7 @@ export const InvoiceEditor = ({
       total: 0,
       balanceDue: 0,
       items: [{ description: '', quantity: 1, unitPrice: 0, unit: 'pcs', total: 0, expiryMode: 'full' }],
-      template: 'medical',
+      template: 'medical-landscape',
       themeColor: '#000000',
       terms: settings.defaultTerms || '1. This is an electronically generated document.\n2. All disputes are subject to seller city jurisdiction.',
       showSignatory: true,
