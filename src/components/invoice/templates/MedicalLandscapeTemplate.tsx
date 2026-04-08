@@ -80,13 +80,37 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
 
   return (
     <div
-      className="invoice-wrap bg-white font-sans"
+      className="invoice-wrap bg-white"
       style={{
         width: '100%',
         maxWidth: '100%',
         boxSizing: 'border-box',
+        position: 'relative', // Added for watermark container
+        overflow: 'hidden', // Contain the rotated watermark
+        fontFamily: 'system-ui, -apple-system, Arial, sans-serif', // Fallback print fonts
+        WebkitPrintColorAdjust: 'exact', // Force background colors to print
+        printColorAdjust: 'exact',
       }}
     >
+      {/* DIAGONAL WATERMARK */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '49%',
+          left: '27%',
+          transform: 'translate(-50%, -50%) rotate(-28deg)',
+          fontSize: '24px', // Static size prevents print scaling issues
+          color: 'rgba(0, 0, 0, 0.06)', // Very light grey
+          fontWeight: 900,
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none', // Prevents mouse clicks from being intercepted
+          zIndex: 0,
+          userSelect: 'none',
+        }}
+      >
+        {settings.companyName}
+      </div>
+
       <div
         style={{
           width: '100%',
@@ -94,13 +118,16 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
+          position: 'relative', // Ensures text sits above the watermark
+          zIndex: 1,
         }}
       >
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: B }}>
           <div style={{ borderRight: B, padding: '4px 6px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{
               fontWeight: 900,
-              fontSize: titleSize && titleSize > 0 ? `${titleSize}px` : 'clamp(0.72rem, 2.2vw, 1rem)',
+              /* Fixed font offset issue by replacing 'clamp(0.72rem, 2.2vw, 1rem)' with '16px' */
+              fontSize: titleSize && titleSize > 0 ? `${titleSize}px` : '16px',
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
               lineHeight: 1.2,
@@ -252,7 +279,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
         }}>
           <div
             style={{
-              gridColumn: '1 / 2',   // only left section (7fr)
+              gridColumn: '1 / 2',
               borderRight: B,
               borderBottom: B,
               padding: '3px 6px',
@@ -291,7 +318,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
             </div>
 
             {invoice.showSignatory && (
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px', zIndex: 1 }}>
                 <div style={{ textAlign: 'center', minWidth: '100px' }}>
                   <div style={{ fontSize: '7.5px', fontWeight: 700, marginBottom: '2px' }}>
                     For, {settings.companyName}
@@ -316,7 +343,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           </div>
 
           {/* RIGHT: Sub Total / Discount / Grand Total */}
-          <div style={{ gridRow: '1 / 3', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ gridRow: '1 / 3', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', zIndex: 1 }}>
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
                 <span>SUB TOTAL</span>
