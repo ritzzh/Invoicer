@@ -99,7 +99,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           top: '49%',
           left: '27%',
           transform: 'translate(-50%, -50%) rotate(-28deg)',
-          fontSize: '24px', // Static size prevents print scaling issues
+          fontSize: '35px', // Static size prevents print scaling issues
           color: 'rgba(0, 0, 0, 0.06)', // Very light grey
           fontWeight: 900,
           whiteSpace: 'nowrap',
