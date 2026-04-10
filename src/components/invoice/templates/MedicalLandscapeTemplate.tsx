@@ -31,7 +31,7 @@ const TableHead = () => (
             borderLeft: B,
             borderRight: B,
             borderTop: N,
-            borderBottom: N,
+            borderBottom: B,
             padding: '2px 3px',
             fontSize: '8px',
             fontWeight: 800,
@@ -100,7 +100,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           left: '27%',
           transform: 'translate(-50%, -50%) rotate(-28deg)',
           fontSize: '35px', // Static size prevents print scaling issues
-          color: 'rgba(0, 0, 0, 0.06)', // Very light grey
+          color: 'rgba(0, 0, 0, 0.15)', // Very light grey
           fontWeight: 900,
           whiteSpace: 'nowrap',
           pointerEvents: 'none', // Prevents mouse clicks from being intercepted
@@ -170,6 +170,8 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
         {/* ROW 2: 3-column strip — DL/GSTIN | GST INVOICE | Invoice No/Date */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderTop: 'none' }}>
           <div style={{
+            display: 'flex', 
+            flexDirection: 'column',
             borderLeft: B,
             borderBottom: B,
             borderRight: B,
@@ -198,6 +200,9 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
             GST INVOICE
           </div>
           <div style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
             borderBottom: B,
             borderRight: B,
             padding: '3px 5px',
