@@ -126,7 +126,6 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           <div style={{ borderRight: B, padding: '4px 6px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{
               fontWeight: 900,
-              /* Fixed font offset issue by replacing 'clamp(0.72rem, 2.2vw, 1rem)' with '16px' */
               fontSize: titleSize && titleSize > 0 ? `${titleSize}px` : '16px',
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
@@ -169,27 +168,43 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
         </div>
 
         {/* ROW 2: 3-column strip — DL/GSTIN | GST INVOICE | Invoice No/Date */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', border: B, borderTop: 'none' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', borderRight: B, padding: '3px 5px', fontSize: '7.5px', fontWeight: 700, lineHeight: 1.5 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderTop: 'none' }}>
+          <div style={{
+            borderLeft: B,
+            borderBottom: B,
+            borderRight: B,
+            padding: '3px 5px',
+            fontSize: '7.5px',
+            fontWeight: 700,
+            lineHeight: 1.5
+          }}>
             <span>GSTIN: {gstNumber} </span>
             <span>DL: {dlNumbers.join(', ')}</span>
           </div>
           <div style={{
+            borderBottom: B,
             borderRight: B,
+            padding: '3px 4px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '3px 4px',
             fontWeight: 900,
             fontSize: '20px',
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
             backgroundColor: '#f5f5f5',
+            boxSizing: 'border-box'
           }}>
             GST INVOICE
           </div>
-          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', padding: '3px 5px', fontSize: '7.5px', lineHeight: 1.6 }}>
-            <div>
+          <div style={{
+            borderBottom: B,
+            borderRight: B,
+            padding: '3px 5px',
+            fontSize: '7.5px',
+            lineHeight: 1.6
+          }}>            
+          <div>
               <span style={{ fontWeight: 700 }}>Invoice No.: </span>
               <span style={{ fontWeight: 900 }}>{invoice.invoiceNumber}</span>
             </div>
