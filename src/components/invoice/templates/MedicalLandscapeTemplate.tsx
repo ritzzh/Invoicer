@@ -9,7 +9,7 @@ const B = '1px solid #000';
 const N = 'none';
 const T = '1px solid #aaa';
 
-const MIN_ROWS = 15;
+const MIN_ROWS = 16;
 
 const TableHead = () => (
   <thead>
@@ -32,7 +32,7 @@ const TableHead = () => (
             borderRight: B,
             borderTop: N,
             borderBottom: B,
-            padding: '2px 3px',
+            padding: '3px 3px',
             fontSize: '8px',
             fontWeight: 800,
             textAlign: 'center',
@@ -145,7 +145,8 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
             </div>
           </div>
 
-          <div style={{ padding: '4px 6px', fontSize: '8px' }}>
+          {/* CHANGED: fontSize bumped from 8px → 9px so labels & values share one size */}
+          <div style={{ padding: '4px 6px', fontSize: '9px' }}>
             <div style={{ marginBottom: '2px' }}>
               <span style={{ fontWeight: 700 }}>{invoice.clientLabel}: </span>
               <span style={{ fontWeight: 900, textTransform: 'uppercase' }}>{invoice.clientName}</span>
@@ -232,55 +233,55 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
             <tbody>
               {invoice.items.map((item, i) => (
                 <tr key={i}>
-                  <td style={{ ...sideBorder, padding: '1px 3px', textAlign: 'center', fontSize: '8px' }}>{i + 1}</td>
-                  <td style={{ ...sideBorder, padding: '1px 4px', fontSize: '8px', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600 }}>{i + 1}</td>
+                  <td style={{ ...sideBorder, padding: '2px 4px', fontSize: '10px', fontWeight: 600, wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>
                     {item.description}
                   </td>
-                  <td style={{ ...sideBorder, padding: '1px 3px', textAlign: 'center', fontSize: '8px', whiteSpace: 'nowrap' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {item.unit || '-'}
                   </td>
-                  <td style={{ ...sideBorder, padding: '1px 3px', textAlign: 'center', fontSize: '8px', whiteSpace: 'nowrap' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {(item as any).batchNo || '-'}
                   </td>
-                  <td style={{ ...sideBorder, padding: '1px 3px', textAlign: 'center', fontSize: '8px', whiteSpace: 'nowrap' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {(item as any).hsn || '-'}
                   </td>
-                  <td style={{ ...sideBorder, padding: '1px 3px', textAlign: 'center', fontSize: '8px', whiteSpace: 'normal' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600, whiteSpace: 'normal' }}>
                     {formatExpiry((item as any).expiryDate, (item as any).expiryMode)}
                   </td>
-                  <td style={{ ...sideBorder, padding: '1px 3px', textAlign: 'center', fontSize: '8px' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600 }}>
                     {item.quantity}
                   </td>
-                  <td style={{ ...sideBorder, padding: '1px 4px', textAlign: 'right', fontSize: '8px', whiteSpace: 'nowrap' }}>
+                  <td style={{ ...sideBorder, padding: '2px 4px', textAlign: 'right', fontSize: '8px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {item.unitPrice.toFixed(2)}
                   </td>
-                  <td style={{ ...sideBorder, padding: '1px 4px', textAlign: 'right', fontSize: '8px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                  <td style={{ ...sideBorder, padding: '2px 4px', textAlign: 'right', fontSize: '8px', fontWeight: 700, whiteSpace: 'nowrap' }}>
                     {item.total.toFixed(2)}
                   </td>
                 </tr>
               ))}
               {Array.from({ length: fillerCount }).map((_, i) => (
                 <tr key={`f${i}`}>
-                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '1px 4px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '1px 4px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '1px 4px', fontSize: '8px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '2px 4px', fontSize: '10px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '2px 4px', fontSize: '8px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '2px 4px', fontSize: '8px' }}>&nbsp;</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr style={{ backgroundColor: '#f5f5f5', fontWeight: 700 }}>
-                <td colSpan={6} style={{ border: B, padding: '1px 4px', textAlign: 'right', fontSize: '8px' }}>Total</td>
-                <td style={{ border: B, padding: '1px 3px', textAlign: 'center', fontSize: '8px' }}>
+                <td colSpan={6} style={{ border: B, padding: '2px 4px', textAlign: 'right', fontSize: '8px' }}>Total</td>
+                <td style={{ border: B, padding: '2px 3px', textAlign: 'center', fontSize: '8px' }}>
                   {invoice.items.reduce((s, i) => s + i.quantity, 0)}
                 </td>
-                <td style={{ border: B, padding: '1px 3px' }} />
-                <td style={{ border: B, padding: '1px 4px', textAlign: 'right', fontSize: '8px' }}>
+                <td style={{ border: B, padding: '2px 3px' }} />
+                <td style={{ border: B, padding: '2px 4px', textAlign: 'right', fontSize: '8px' }}>
                   {subtotal.toFixed(2)}
                 </td>
               </tr>
