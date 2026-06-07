@@ -162,12 +162,12 @@ export default function App() {
                       <span className="hidden sm:inline">Edit / Change Type</span>
                       <span className="sm:hidden">Edit</span>
                     </button>
-                    <button
+                    {/* <button
                       onClick={() => openEmailModal(selectedInvoice)}
                       className="btn-secondary flex items-center gap-2 flex-1 sm:flex-none justify-center"
                     >
                       <Mail size={18} /> Email
-                    </button>
+                    </button> */}
                     <button onClick={() => window.print()} className="btn-secondary flex items-center gap-2 flex-1 sm:flex-none justify-center">
                       <Printer size={18} /> Print
                     </button>

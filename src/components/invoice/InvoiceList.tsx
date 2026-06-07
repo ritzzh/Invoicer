@@ -61,7 +61,7 @@ export const InvoiceList = ({ invoices, onNew, onView, onDelete, currency, setti
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight truncate">Invoices</h2>
         <div className="flex items-center gap-2 shrink-0">
-          {invoices.length > 0 && (
+          {/* {invoices.length > 0 && (
             <button
               onClick={() => setShowBulkModal(true)}
               className="btn-secondary flex items-center gap-1.5 text-xs sm:text-sm"
@@ -70,7 +70,7 @@ export const InvoiceList = ({ invoices, onNew, onView, onDelete, currency, setti
               <Send size={14} />
               <span className="hidden sm:inline">Send All</span>
             </button>
-          )}
+          )} */}
           <button onClick={onNew} className="btn-primary flex items-center gap-1.5 text-xs sm:text-sm">
             <Plus size={16} />
             <span className="hidden sm:inline">New Invoice</span>

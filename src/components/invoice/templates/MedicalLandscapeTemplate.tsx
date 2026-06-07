@@ -9,7 +9,7 @@ const B = '1px solid #000';
 const N = 'none';
 const T = '1px solid #aaa';
 
-const MIN_ROWS = 16;
+const MIN_ROWS = 12;
 
 const TableHead = () => (
   <thead>
@@ -20,7 +20,7 @@ const TableHead = () => (
         ['PACK', '75px'],
         ['BATCH', '75px'],
         ['HSN', '55px'],
-        ['EXP.', '55px'],
+        ['EXP.', '70px'],
         ['QTY', '35px'],
         ['M.R.P.', '55px'],
         ['AMOUNT', '55px'],
@@ -33,7 +33,7 @@ const TableHead = () => (
             borderTop: N,
             borderBottom: B,
             padding: '3px 3px',
-            fontSize: '8px',
+            fontSize: '9px',
             fontWeight: 800,
             textAlign: 'center',
             whiteSpace: 'nowrap',
@@ -54,20 +54,19 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
   const doctorLabel = (invoice as any).doctorLabel || 'Dr Name';
   const gstNumber = (settings as any).gstNumber || '';
   const dateFormatted = invoice.date ? invoice.date.split('-').reverse().join('-') : '';
-  const GST_RATE = 5; // 2.5% SGST + 2.5% CGST
+  const GST_RATE = 5;
 
   const round = (n: number) => Number(n.toFixed(2));
   const total = invoice.total;
   const baseAmount = round(total / (1 + GST_RATE / 100));
   const gstAmount = round(total - baseAmount);
   const sgst = round(gstAmount / 2);
-  const cgst = round(gstAmount - sgst); // ensures no rounding mismatch
+  const cgst = round(gstAmount - sgst);
   const titleSize = (invoice as any).companyTitleSize || settings.companyTitleSize;
   const originalTaxable = round(subtotal - discountAmount);
   const roundedTaxable = Math.round(originalTaxable);
   const roundOff = round(roundedTaxable - originalTaxable);
 
-  // Side-only border style for data cells
   const sideBorder: React.CSSProperties = {
     borderLeft: B,
     borderRight: B,
@@ -75,7 +74,6 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
     borderBottom: N,
   };
 
-  // Filler rows to always show MIN_ROWS rows total
   const fillerCount = Math.max(0, MIN_ROWS - invoice.items.length);
 
   return (
@@ -85,10 +83,10 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
         width: '100%',
         maxWidth: '100%',
         boxSizing: 'border-box',
-        position: 'relative', // Added for watermark container
-        overflow: 'hidden', // Contain the rotated watermark
-        fontFamily: 'system-ui, -apple-system, Arial, sans-serif', // Fallback print fonts
-        WebkitPrintColorAdjust: 'exact', // Force background colors to print
+        position: 'relative',
+        overflow: 'hidden',
+        fontFamily: 'system-ui, -apple-system, Arial, sans-serif',
+        WebkitPrintColorAdjust: 'exact',
         printColorAdjust: 'exact',
       }}
     >
@@ -99,11 +97,11 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           top: '49%',
           left: '27%',
           transform: 'translate(-50%, -50%) rotate(-28deg)',
-          fontSize: '35px', // Static size prevents print scaling issues
-          color: 'rgba(0, 0, 0, 0.15)', // Very light grey
+          fontSize: '35px',
+          color: 'rgba(0, 0, 0, 0.15)',
           fontWeight: 900,
           whiteSpace: 'nowrap',
-          pointerEvents: 'none', // Prevents mouse clicks from being intercepted
+          pointerEvents: 'none',
           zIndex: 0,
           userSelect: 'none',
         }}
@@ -118,7 +116,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
-          position: 'relative', // Ensures text sits above the watermark
+          position: 'relative',
           zIndex: 1,
         }}
       >
@@ -135,18 +133,17 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
               {settings.companyName}
             </div>
             {settings.companyAddress && (
-              <div style={{ fontSize: '7.5px', fontWeight: 600, marginTop: '2px', lineHeight: 1.3 }}>
+              <div style={{ fontSize: '8.5px', fontWeight: 600, marginTop: '2px', lineHeight: 1.3 }}>
                 {settings.companyAddress}
               </div>
             )}
-            <div style={{ fontSize: '7.5px', fontWeight: 600, marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ fontSize: '8.5px', fontWeight: 600, marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {settings.companyPhone && <span>✆ {settings.companyPhone}</span>}
               {settings.companyEmail && <span>✉ {settings.companyEmail}</span>}
             </div>
           </div>
 
-          {/* CHANGED: fontSize bumped from 8px → 9px so labels & values share one size */}
-          <div style={{ padding: '4px 6px', fontSize: '9px' }}>
+          <div style={{ padding: '4px 6px', fontSize: '10px' }}>
             <div style={{ marginBottom: '2px' }}>
               <span style={{ fontWeight: 700 }}>{invoice.clientLabel}: </span>
               <span style={{ fontWeight: 900, textTransform: 'uppercase' }}>{invoice.clientName}</span>
@@ -168,16 +165,16 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           </div>
         </div>
 
-        {/* ROW 2: 3-column strip — DL/GSTIN | GST INVOICE | Invoice No/Date */}
+        {/* ROW 2: 3-column strip */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderTop: 'none' }}>
           <div style={{
-            display: 'flex', 
+            display: 'flex',
             flexDirection: 'column',
             borderLeft: B,
             borderBottom: B,
             borderRight: B,
             padding: '3px 5px',
-            fontSize: '7.5px',
+            fontSize: '8.5px',
             fontWeight: 700,
             lineHeight: 1.5
           }}>
@@ -207,10 +204,10 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
             borderBottom: B,
             borderRight: B,
             padding: '3px 5px',
-            fontSize: '7.5px',
+            fontSize: '8.5px',
             lineHeight: 1.6
-          }}>            
-          <div>
+          }}>
+            <div>
               <span style={{ fontWeight: 700 }}>Invoice No.: </span>
               <span style={{ fontWeight: 900 }}>{invoice.invoiceNumber}</span>
             </div>
@@ -233,55 +230,55 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
             <tbody>
               {invoice.items.map((item, i) => (
                 <tr key={i}>
-                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600 }}>{i + 1}</td>
-                  <td style={{ ...sideBorder, padding: '2px 4px', fontSize: '10px', fontWeight: 600, wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '9.5px', fontWeight: 600 }}>{i + 1}</td>
+                  <td style={{ ...sideBorder, padding: '2px 4px', fontSize: '11px', fontWeight: 600, wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>
                     {item.description}
                   </td>
-                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '9.5px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {item.unit || '-'}
                   </td>
-                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '9.5px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {(item as any).batchNo || '-'}
                   </td>
-                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '9.5px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {(item as any).hsn || '-'}
                   </td>
-                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600, whiteSpace: 'normal' }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '9.5px', fontWeight: 600, whiteSpace: 'normal' }}>
                     {formatExpiry((item as any).expiryDate, (item as any).expiryMode)}
                   </td>
-                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '8px', fontWeight: 600 }}>
+                  <td style={{ ...sideBorder, padding: '2px 3px', textAlign: 'center', fontSize: '9.5px', fontWeight: 600 }}>
                     {item.quantity}
                   </td>
-                  <td style={{ ...sideBorder, padding: '2px 4px', textAlign: 'right', fontSize: '8px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  <td style={{ ...sideBorder, padding: '2px 4px', textAlign: 'right', fontSize: '9.5px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {item.unitPrice.toFixed(2)}
                   </td>
-                  <td style={{ ...sideBorder, padding: '2px 4px', textAlign: 'right', fontSize: '8px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                  <td style={{ ...sideBorder, padding: '2px 4px', textAlign: 'right', fontSize: '9.5px', fontWeight: 700, whiteSpace: 'nowrap' }}>
                     {item.total.toFixed(2)}
                   </td>
                 </tr>
               ))}
-              {Array.from({ length: fillerCount }).map((_, i) => (
-                <tr key={`f${i}`}>
-                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '2px 4px', fontSize: '10px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '2px 3px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '2px 4px', fontSize: '8px' }}>&nbsp;</td>
-                  <td style={{ ...sideBorder, padding: '2px 4px', fontSize: '8px' }}>&nbsp;</td>
+              {fillerCount > 0 && Array.from({ length: fillerCount }).map((_, i) => (
+                <tr key={`f${i}`} style={{ height: '10px' }}>
+                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '9.5px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '1px 4px', fontSize: '11px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '9.5px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '9.5px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '9.5px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '9.5px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '1px 3px', fontSize: '9.5px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '1px 4px', fontSize: '9.5px' }}>&nbsp;</td>
+                  <td style={{ ...sideBorder, padding: '1px 4px', fontSize: '9.5px' }}>&nbsp;</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr style={{ backgroundColor: '#f5f5f5', fontWeight: 700 }}>
-                <td colSpan={6} style={{ border: B, padding: '2px 4px', textAlign: 'right', fontSize: '8px' }}>Total</td>
-                <td style={{ border: B, padding: '2px 3px', textAlign: 'center', fontSize: '8px' }}>
+                <td colSpan={6} style={{ border: B, padding: '2px 4px', textAlign: 'right', fontSize: '9px' }}>Total</td>
+                <td style={{ border: B, padding: '2px 3px', textAlign: 'center', fontSize: '9px' }}>
                   {invoice.items.reduce((s, i) => s + i.quantity, 0)}
                 </td>
                 <td style={{ border: B, padding: '2px 3px' }} />
-                <td style={{ border: B, padding: '2px 4px', textAlign: 'right', fontSize: '8px' }}>
+                <td style={{ border: B, padding: '2px 4px', textAlign: 'right', fontSize: '9px' }}>
                   {subtotal.toFixed(2)}
                 </td>
               </tr>
@@ -304,7 +301,7 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
               borderRight: B,
               borderBottom: B,
               padding: '3px 6px',
-              fontSize: '8px',
+              fontSize: '9px',
               fontWeight: 700,
             }}
           >
@@ -322,10 +319,10 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
             <div>
               {invoice.terms && (
                 <>
-                  <div style={{ fontSize: '7.5px', fontWeight: 800, textDecoration: 'underline', marginBottom: '2px', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '8.5px', fontWeight: 800, textDecoration: 'underline', marginBottom: '2px', textTransform: 'uppercase' }}>
                     Terms &amp; Conditions
                   </div>
-                  <div style={{ fontSize: '7.5px', fontWeight: 600, lineHeight: 1.45 }}>
+                  <div style={{ fontSize: '8.5px', fontWeight: 600, lineHeight: 1.45 }}>
                     {invoice.terms.split('\n').filter(t => t.trim()).map((term, i) => (
                       <div key={i}>{term}</div>
                     ))}
@@ -333,8 +330,8 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
                 </>
               )}
               <div style={{ marginTop: '4px' }}>
-                <span style={{ fontSize: '6.5px', fontWeight: 700, textTransform: 'uppercase' }}>Amount in Words: </span>
-                <span style={{ fontSize: '6px', fontWeight: 900, fontStyle: 'italic' }}>{numberToWords(invoice.total)}</span>
+                <span style={{ fontSize: '7.5px', fontWeight: 700, textTransform: 'uppercase' }}>Amount in Words: </span>
+                <span style={{ fontSize: '7px', fontWeight: 900, fontStyle: 'italic' }}>{numberToWords(invoice.total)}</span>
               </div>
             </div>
 
@@ -366,36 +363,36 @@ export const MedicalLandscapeTemplate = ({ invoice, settings }: TemplateProps) =
           {/* RIGHT: Sub Total / Discount / Grand Total */}
           <div style={{ gridRow: '1 / 3', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', zIndex: 1 }}>
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '9px', fontWeight: 700 }}>
                 <span>SUB TOTAL</span>
                 <span>{subtotal.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '9px', fontWeight: 700 }}>
                 <span>DISCOUNT ({invoice.discountPercentage}%)</span>
                 <span style={{ color: discountAmount > 0 ? '#aa0000' : '#000' }}>
                   {discountAmount > 0 ? `-${discountAmount.toFixed(2)}` : '0.00'}
                 </span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '9px', fontWeight: 700 }}>
                 <span>SGST 2.5%</span>
                 <span style={{ color: discountAmount > 0 ? '#aa0000' : '#000' }}>
                   {sgst.toFixed(2)}
                 </span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '9px', fontWeight: 700 }}>
                 <span>CGST 2.5%</span>
                 <span style={{ color: discountAmount > 0 ? '#aa0000' : '#000' }}>
                   {cgst.toFixed(2)}
                 </span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '8px', fontWeight: 700 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 6px', borderBottom: T, fontSize: '9px', fontWeight: 700 }}>
                 <span>ROUNDOFF</span>
                 <span style={{ color: discountAmount > 0 ? '#aa0000' : '#000' }}>
                   {roundOff.toFixed(2)}
                 </span>
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 6px', backgroundColor: '#000', color: '#fff', fontSize: '9px', fontWeight: 900, letterSpacing: '0.03em' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 6px', backgroundColor: '#000', color: '#fff', fontSize: '10px', fontWeight: 900, letterSpacing: '0.03em' }}>
               <span>GRAND TOTAL</span>
               <span>{invoice.total.toFixed(2)}</span>
             </div>
